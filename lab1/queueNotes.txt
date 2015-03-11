@@ -1,0 +1,10 @@
+sentry 
+
+semtab[sentry, sentry, sentry]
+
+sentry - 1 qid
+
+qid > pointer to a queue > holds process ids
+
+
+struct qentry qids
