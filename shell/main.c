@@ -14,13 +14,13 @@ extern command builtInTable[MAX_BUILT_IN_COMMANDS];
 extern alias aliasTable[MAX_ALIAS];
 
 /* Function Prototypes */
-/*int yyparse();*/
+
 
 int main() {
 	shell_init();
 	while(1) {
 		printPrompt();
-		switch(cmd = getCommand()){
+		/*switch(cmd = getCommand()){
 			case BYE:
 				exit();
 				break;
@@ -30,7 +30,7 @@ int main() {
 			case OK:
 				processCommand();
 				break;
-		}
+		}*/
 	}
 }
 

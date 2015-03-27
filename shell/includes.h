@@ -6,9 +6,12 @@
 
 #define allocate(t)		(t *)malloc(sizeof(t))
 /* getCommand() */
-#define OK 				0
-#define ERRORS 			1
-#define BYE 			2
+#define FALSE			0
+#define TRUE			1
+#define OK 				2
+#define ERRORS 			3
+#define BYE 			4
+
 
 /* MAX */
 #define MAX_PROMPT_LENGTH	500
@@ -42,6 +45,9 @@ typedef struct {
 static int globalReadOffset;
 static char promptResponse[500];
 
+int wordCount = 0;
+char* firstWord;
+
 char* path;
 char* home;
 int cmd;
@@ -68,7 +74,7 @@ void initializeAliasTable();
 /* Prompt */
 void printPrompt();
 int getCommand();
-
+int getWordCount();
 void understand_errors();
 void init_scanner_and_parse();
 int yyparse();
@@ -171,5 +177,11 @@ void printPrompt() {
 	globalReadOffset = 0;
 	printf("> ");
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
+	wordCount = 0;
+	yyparse();
+	printf("%d : %s", wordCount, firstWord);
+}
+
+int isBuiltInCommand() {
 	
 }

@@ -37,17 +37,21 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     QUOTED = 258,
-     WORD = 259,
-     NUMBER = 260,
-     ECHO = 261
+     WORD = 258,
+     QUOTED = 259,
+     OPEN_BRACE = 260,
+     CLOSE_BRACE = 261,
+     ECHO = 262,
+     NEWLINE = 263
    };
 #endif
 /* Tokens.  */
-#define QUOTED 258
-#define WORD 259
-#define NUMBER 260
-#define ECHO 261
+#define WORD 258
+#define QUOTED 259
+#define OPEN_BRACE 260
+#define CLOSE_BRACE 261
+#define ECHO 262
+#define NEWLINE 263
 
 
 
@@ -57,15 +61,15 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 16 "parser.y"
+#line 19 "parser.y"
 
 	int my_number;
-	char* my_string;
+	char* string;
 
 
 
 /* Line 2068 of yacc.c  */
-#line 69 "y.tab.h"
+#line 73 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

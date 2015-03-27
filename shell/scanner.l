@@ -1,9 +1,14 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
+#include <string.h>
+#include <stdlib.h>
+#define YYSTYPE char*s
 
 #undef YY_INPUT
 #define YY_INPUT(b,r,s) readInputForLexer(b,&r,s)
+
+extern int wordCount;
 
 %}
 
@@ -11,12 +16,14 @@
 %%
 
 
-echo 										return ECHO;
+
+\{											return OPEN_BRACE;
+\}											return CLOSE_BRACE;
 
 "\""[^\n]*"\"" 								return QUOTED;
-[a-zA-Z]+									return WORD;
-[0-9]+ {yylval.my_number = atoi(yytext); return NUMBER;}; /*We store the value for yacc to use in yylval. yytext is the input received by lex*/
-
+[a-zA-Z]+[0-9]*									yylval.string = strdup(yytext);return WORD;
+\n | ";"									{ wordCount = 0; return END;};
+[ \t\r\s]+										/* ignore whitespace */
 
 
 
