@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-/*#include "y.tab.h"
+#include "y.tab.h"
 #include "unistd.h"
-*/
+
 #define allocate(t)		(t *)malloc(sizeof(t))
 /* getCommand() */
 #define OK 				0
 #define ERROR 			1
 /* MAX */
-#define MAXCMDS 50
+#define MAX_BUILT_IN_COMMANDS 7
 #define MAXARGS 300
 #define MAXALIAS 100
 #define MAXPATH 50
@@ -34,18 +34,41 @@ typedef struct {
 	char *aliasContent;
 } alias;
 
-
-
 /* Globals */
 char* path;
 char* home;
 int cmd;
 
-/*int yyparse();
-int readInputForLexer(char*, int*, int);*/
+/* Externs in main.c */
+static command builtInTable[MAX_BUILT_IN_COMMANDS];
+char** aliasTable;
 
+static int globalReadOffset;
+//static const char *globalInputText = "3+4";
+static char promptResponse[128];
+
+/********* Function Prototypes *********/
+int getCommand();
+void understand_errors();
+void init_scanner_and_parse();
+void initializeCommands();
+
+/********* Functions *********/
+void initializeCommands() {
+	/* Static - Only can initialize these variables once */
+	static command setenv;
+	setenv.commandName = "setenv";
+
+	static command printenv;
+	printenv.commandName = "printenv";
+
+	static 
+
+}
 void shell_init() {
-
+	/* Initialize all our tables and variables */
+	
+	/* Initialize all variables */
 	path = allocate(char);
 	home = allocate(char);
 	strcpy(path, getenv("PATH"));
@@ -82,10 +105,12 @@ int getCommand() {
 }
 
 void processCommand() {
-	if(builtin) {
+	/*if(builtin) {
 		do_it();
 	}
 	else {
 		execute_it();
-	}
+	}*/
 }
+void understand_errors() {}
+void init_scanner_and_parse() {}
