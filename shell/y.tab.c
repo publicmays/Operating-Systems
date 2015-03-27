@@ -80,10 +80,8 @@ extern int readInputForLexer(char* buffer,int *numBytesRead,int maxBytesToRead);
 
 
 
-
-
 /* Line 268 of yacc.c  */
-#line 87 "y.tab.c"
+#line 85 "y.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -113,8 +111,7 @@ extern int readInputForLexer(char* buffer,int *numBytesRead,int maxBytesToRead);
      QUOTED = 258,
      WORD = 259,
      NUMBER = 260,
-     ECHO = 261,
-     NOTNEWLINE = 262
+     ECHO = 261
    };
 #endif
 /* Tokens.  */
@@ -122,7 +119,6 @@ extern int readInputForLexer(char* buffer,int *numBytesRead,int maxBytesToRead);
 #define WORD 259
 #define NUMBER 260
 #define ECHO 261
-#define NOTNEWLINE 262
 
 
 
@@ -132,7 +128,7 @@ typedef union YYSTYPE
 {
 
 /* Line 293 of yacc.c  */
-#line 18 "parser.y"
+#line 16 "parser.y"
 
 	int my_number;
 	char* my_string;
@@ -140,7 +136,7 @@ typedef union YYSTYPE
 
 
 /* Line 293 of yacc.c  */
-#line 144 "y.tab.c"
+#line 140 "y.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -152,7 +148,7 @@ typedef union YYSTYPE
 
 
 /* Line 343 of yacc.c  */
-#line 156 "y.tab.c"
+#line 152 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -374,7 +370,7 @@ union yyalloc
 #define YYLAST   6
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  8
+#define YYNTOKENS  7
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  4
 /* YYNRULES -- Number of rules.  */
@@ -384,7 +380,7 @@ union yyalloc
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   262
+#define YYMAXUTOK   261
 
 #define YYTRANSLATE(YYX)						\
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -418,7 +414,7 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7
+       5,     6
 };
 
 #if YYDEBUG
@@ -432,14 +428,14 @@ static const yytype_uint8 yyprhs[] =
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
-       9,     0,    -1,    -1,     9,    10,    -1,    11,    -1,     6,
+       8,     0,    -1,    -1,     8,     9,    -1,    10,    -1,     6,
       -1,     6,     3,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    30,    30,    31,    35,    38,    39
+       0,    28,    28,    29,    33,    36,    37
 };
 #endif
 
@@ -449,7 +445,7 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "QUOTED", "WORD", "NUMBER", "ECHO",
-  "NOTNEWLINE", "$accept", "commands", "command", "echo_function", 0
+  "$accept", "commands", "command", "echo_function", 0
 };
 #endif
 
@@ -458,14 +454,14 @@ static const char *const yytname[] =
    token YYLEX-NUM.  */
 static const yytype_uint16 yytoknum[] =
 {
-       0,   256,   257,   258,   259,   260,   261,   262
+       0,   256,   257,   258,   259,   260,   261
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,     8,     9,     9,    10,    11,    11
+       0,     7,     8,     8,     9,    10,    10
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -526,7 +522,7 @@ static const yytype_int8 yycheck[] =
    symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     9,     0,     6,    10,    11,     3
+       0,     8,     0,     6,     9,    10,     3
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1363,7 +1359,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1367 "y.tab.c"
+#line 1363 "y.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1594,7 +1590,7 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 44 "parser.y"
+#line 41 "parser.y"
 
 
 

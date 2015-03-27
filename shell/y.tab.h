@@ -40,8 +40,7 @@
      QUOTED = 258,
      WORD = 259,
      NUMBER = 260,
-     ECHO = 261,
-     NOTNEWLINE = 262
+     ECHO = 261
    };
 #endif
 /* Tokens.  */
@@ -49,7 +48,6 @@
 #define WORD 259
 #define NUMBER 260
 #define ECHO 261
-#define NOTNEWLINE 262
 
 
 
@@ -59,7 +57,7 @@ typedef union YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 18 "parser.y"
+#line 16 "parser.y"
 
 	int my_number;
 	char* my_string;
@@ -67,7 +65,7 @@ typedef union YYSTYPE
 
 
 /* Line 2068 of yacc.c  */
-#line 71 "y.tab.h"
+#line 69 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

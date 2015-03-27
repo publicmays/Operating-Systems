@@ -22,6 +22,7 @@ extern int readInputForLexer(char* buffer,int *numBytesRead,int maxBytesToRead);
 %token <my_string> WORD 
 %token <my_number> NUMBER 
 
+%token ECHO
 
 %%
 commands: /* empty */ 
@@ -34,7 +35,6 @@ command:
 
 echo_function: ECHO
 			|	ECHO QUOTED
-
 			;
 
 

@@ -3,21 +3,24 @@
  * File : main.c
  * Version : 1.0
  * Comments : 
-*/
+************************/
 #include "includes.h"
- /* Externs */
+/************** Externs **************/
+/* Prompt */
+extern int globalReadOffset;
+extern char promptResponse[500];
+/* Tables */
 extern command builtInTable[MAX_BUILT_IN_COMMANDS];
-extern char** aliasTable;
+extern alias aliasTable[MAX_ALIAS];
 
 /* Function Prototypes */
-int yyparse();
-int readInputForLexer(char *buffer, int *numBytesRead, int maxBytesToRead);
+/*int yyparse();*/
 
 int main() {
 	shell_init();
-	/*while(1) {
+	while(1) {
 		printPrompt();
-		switch(cmd = getCommand()){
+		/*switch(cmd = getCommand()){
 			case BYE:
 				exit();
 				break;
@@ -27,9 +30,11 @@ int main() {
 			case OK:
 				processCommand();
 				break;
-		}
-	}*/
+		}*/
+	}
 }
+
+/* Referenced from stack overflow */
 int readInputForLexer( char *buffer, int *numBytesRead, int maxBytesToRead ) {
     int numBytesToRead = maxBytesToRead;
     int bytesRemaining = strlen(promptResponse)-globalReadOffset;

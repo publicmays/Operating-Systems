@@ -9,9 +9,10 @@
 #define OK 				0
 #define ERROR 			1
 /* MAX */
+#define MAX_PROMPT_LENGTH	500
 #define MAX_BUILT_IN_COMMANDS 7
+#define MAX_ALIAS 100
 #define MAXARGS 300
-#define MAXALIAS 100
 #define MAXPATH 50
 
 /* Data Structures */
@@ -29,45 +30,55 @@ typedef struct {
 } command;
 
 typedef struct {
-	int used;
+	int used;		// when user calls alias ++used, unalias --used
 	char *aliasName;
 	char *aliasContent;
 } alias;
 
-/* Globals */
+/************** Globals **************/
+/* Prompt */
+static int globalReadOffset;
+static char promptResponse[500];
+
 char* path;
 char* home;
 int cmd;
+/* Built in commands */
+static command my_setenv;
+static command my_printenv;
+static command my_unsetenv;
+static command my_cd;
+static command my_alias;
+static command my_unalias;
+static command my_bye;
 
 /* Externs in main.c */
 static command builtInTable[MAX_BUILT_IN_COMMANDS];
-char** aliasTable;
+static alias aliasTable[MAX_ALIAS];
 
-static int globalReadOffset;
-//static const char *globalInputText = "3+4";
-static char promptResponse[128];
 
 /********* Function Prototypes *********/
+/* Initialization */
+void initializeBuiltInCommands();
+void initializeBuiltInTable();
+void initializeAliasTable();
+
+void printPrompt();
 int getCommand();
 void understand_errors();
 void init_scanner_and_parse();
-void initializeCommands();
+int yyparse();
+int readInputForLexer(char *buffer, int *numBytesRead, int maxBytesToRead);
+
 
 /********* Functions *********/
-void initializeCommands() {
-	/* Static - Only can initialize these variables once */
-	static command setenv;
-	setenv.commandName = "setenv";
 
-	static command printenv;
-	printenv.commandName = "printenv";
-
-	static 
-
-}
 void shell_init() {
-	/* Initialize all our tables and variables */
+	initializeBuiltInCommands();
+	initializeBuiltInTable();
+	initializeAliasTable();
 	
+	/* Initialize all our tables and variables */
 	/* Initialize all variables */
 	path = allocate(char);
 	home = allocate(char);
@@ -77,9 +88,9 @@ void shell_init() {
 	/* If user hits ctrl + c, find a way to disable all exits */
 	cmd = -1;
 	/* 
-	0 - successful
-	1 - parse failed, invalid input
-	2 - failed due to memory exhaustion
+		0 - successful
+		1 - parse failed, invalid input
+		2 - failed due to memory exhaustion
 	*/
 }
 
@@ -114,3 +125,47 @@ void processCommand() {
 }
 void understand_errors() {}
 void init_scanner_and_parse() {}
+
+/* Initializing all built in commands */
+void initializeBuiltInCommands() {
+	/* Static - Only can initialize these variables once */
+	my_setenv.commandName = "setenv";
+	my_printenv.commandName = "printenv";
+	my_printenv.commandName = "unsetenv";
+	my_cd.commandName = "cd";
+	my_alias.commandName = "alias";
+	my_unalias.commandName = "unalias";
+	my_bye.commandName = "bye";
+}
+
+/* Initialize built in table */
+void initializeBuiltInTable() {
+	builtInTable[0] = my_setenv;
+	builtInTable[1] = my_printenv;
+	builtInTable[2] = my_unsetenv;
+	builtInTable[3] = my_cd;
+	builtInTable[4] = my_alias;
+	builtInTable[5] = my_unalias;
+	builtInTable[6] = my_bye;
+}
+
+/* Initialize alias table */
+void initializeAliasTable() {
+	int i = 0;
+	for(i; i < MAX_ALIAS; ++i) {
+		aliasTable[i].used = 0;
+		aliasTable[i].aliasName = NULL;
+		aliasTable[i].aliasContent = NULL;
+	}
+}
+
+void printPrompt() {
+	int i = 0;
+	for(i; i < MAX_PROMPT_LENGTH; ++i) {
+			promptResponse[i] = '\0';
+	}
+	globalReadOffset = 0;
+	printf("> ");
+	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
+	yyparse();
+}
