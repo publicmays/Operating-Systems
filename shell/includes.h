@@ -7,7 +7,9 @@
 #define allocate(t)		(t *)malloc(sizeof(t))
 /* getCommand() */
 #define OK 				0
-#define ERROR 			1
+#define ERRORS 			1
+#define BYE 			2
+
 /* MAX */
 #define MAX_PROMPT_LENGTH	500
 #define MAX_BUILT_IN_COMMANDS 7
@@ -63,8 +65,10 @@ void initializeBuiltInCommands();
 void initializeBuiltInTable();
 void initializeAliasTable();
 
+/* Prompt */
 void printPrompt();
 int getCommand();
+
 void understand_errors();
 void init_scanner_and_parse();
 int yyparse();
@@ -99,7 +103,7 @@ int getCommand() {
 	if(yyparse() != 0) {
 		// unsuccessfull
 		understand_errors(); // YYABORT - 1
-		return ERROR;
+		return ERRORS;
 	}
 	else {
 		/* check the command table that we build,
@@ -167,5 +171,5 @@ void printPrompt() {
 	globalReadOffset = 0;
 	printf("> ");
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
-	yyparse();
+	
 }

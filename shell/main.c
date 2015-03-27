@@ -20,7 +20,7 @@ int main() {
 	shell_init();
 	while(1) {
 		printPrompt();
-		/*switch(cmd = getCommand()){
+		switch(cmd = getCommand()){
 			case BYE:
 				exit();
 				break;
@@ -30,7 +30,7 @@ int main() {
 			case OK:
 				processCommand();
 				break;
-		}*/
+		}
 	}
 }
 
