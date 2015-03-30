@@ -16,15 +16,14 @@ extern int wordCount;
 %%
 
 
-
+								
 \{											return OPEN_BRACE;
 \}											return CLOSE_BRACE;
-
-"\""[^\n]*"\"" 								return QUOTED;
-[a-zA-Z]+[0-9]*									yylval.string = strdup(yytext);return WORD;
+"\""[^\n]*"\"" 								return QUOTED; /* To do */
+[a-zA-Z]+[0-9]*								{yylval.string = strdup(yytext);return WORD;};
 \n | ";"									{ wordCount = 0; return END;};
-[ \t\r\s]+										/* ignore whitespace */
-
+[ \t\r\s]+									/* ignore whitespace */
+.											/* everything else = error */
 
 
 %%

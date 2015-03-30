@@ -2,7 +2,7 @@
  * Name : Kathleen Lew 
  * File : main.c
  * Version : 1.0
- * Comments : 
+ * Comments : include echo in builtin command
 ************************/
 #include "includes.h"
 /************** Externs **************/
@@ -20,17 +20,19 @@ int main() {
 	shell_init();
 	while(1) {
 		printPrompt();
-		/*switch(cmd = getCommand()){
+		switch(cmd = getCommand()){
 			case BYE:
-				exit();
+				printf("bye2");
+				exit(0);
 				break;
 			case ERRORS:
-				recover_from_errors();
+				//recover_from_errors();
 				break;
 			case OK:
+			printf("%d", cmd);
 				processCommand();
 				break;
-		}*/
+		}
 	}
 }
 

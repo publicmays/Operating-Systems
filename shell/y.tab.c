@@ -444,7 +444,7 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    37,    37,    38,    42,    42,    42,    45,    52,    53
+       0,    33,    33,    34,    38,    38,    38,    41,    48,    49
 };
 #endif
 
@@ -1369,7 +1369,7 @@ yyreduce:
         case 7:
 
 /* Line 1806 of yacc.c  */
-#line 45 "parser.y"
+#line 41 "parser.y"
     {
 			if(wordCount++ == 0 ) {
 				firstWord = (yyvsp[(1) - (1)].string);
@@ -1612,7 +1612,7 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 55 "parser.y"
+#line 51 "parser.y"
 
 
 

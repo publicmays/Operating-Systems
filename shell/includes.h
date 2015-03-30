@@ -15,7 +15,7 @@
 
 /* MAX */
 #define MAX_PROMPT_LENGTH	500
-#define MAX_BUILT_IN_COMMANDS 7
+#define MAX_BUILT_IN_COMMANDS 8
 #define MAX_ALIAS 100
 #define MAXARGS 300
 #define MAXPATH 50
@@ -59,6 +59,7 @@ static command my_cd;
 static command my_alias;
 static command my_unalias;
 static command my_bye;
+static command my_echo;
 
 /* Externs in main.c */
 static command builtInTable[MAX_BUILT_IN_COMMANDS];
@@ -79,7 +80,7 @@ void understand_errors();
 void init_scanner_and_parse();
 int yyparse();
 int readInputForLexer(char *buffer, int *numBytesRead, int maxBytesToRead);
-
+int isBuiltInCommand();
 
 /********* Functions *********/
 
@@ -105,27 +106,32 @@ void shell_init() {
 }
 
 int getCommand() {
-	init_scanner_and_parse();	// TODO
+	// init_scanner_and_parse();	// TODO
+
+	/* Reset wordCount back to 0 because newline */
+	wordCount = 0;
 	if(yyparse() != 0) {
 		// unsuccessfull
-		understand_errors(); // YYABORT - 1
+		// understand_errors(); // YYABORT - 1
 		return ERRORS;
 	}
 	else {
-		/* check the command table that we build,
-		if first command is bye, return bye 
-		
-		DOUBLE CHECK
-		if(commandTable[0]*){
+		printf("else");
+		printf("\n%s", firstWord);
+		printf("\n%s", builtInTable[6].commandName);
+		if(strcmp(firstWord, builtInTable[6].commandName) == 0){
+			printf("bye1");
 			return BYE;
 		}
-		*/
-		
-		return OK;
+		else {
+			printf("OK");
+			return OK;
+		}
 	}
 }
 
 void processCommand() {
+	
 	/*if(builtin) {
 		do_it();
 	}
@@ -141,11 +147,12 @@ void initializeBuiltInCommands() {
 	/* Static - Only can initialize these variables once */
 	my_setenv.commandName = "setenv";
 	my_printenv.commandName = "printenv";
-	my_printenv.commandName = "unsetenv";
+	my_unsetenv.commandName = "unsetenv";
 	my_cd.commandName = "cd";
 	my_alias.commandName = "alias";
 	my_unalias.commandName = "unalias";
 	my_bye.commandName = "bye";
+	my_echo.commandName = "echo";
 }
 
 /* Initialize built in table */
@@ -157,6 +164,7 @@ void initializeBuiltInTable() {
 	builtInTable[4] = my_alias;
 	builtInTable[5] = my_unalias;
 	builtInTable[6] = my_bye;
+	builtInTable[7] = my_echo;
 }
 
 /* Initialize alias table */
@@ -177,11 +185,27 @@ void printPrompt() {
 	globalReadOffset = 0;
 	printf("> ");
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
-	wordCount = 0;
-	yyparse();
-	printf("%d : %s", wordCount, firstWord);
+	
+	
+	// isBuiltInCommand();
+
+	// printf("%d : %s", wordCount, firstWord);
+
 }
 
 int isBuiltInCommand() {
+	int j;
 	
+	
+	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
+	if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
+			// first word is built in command
+			printf("In for loop");
+			
+			break;
+		}
+}
+	
+
+	return TRUE;
 }
