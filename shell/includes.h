@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include "y.tab.h"
 #include "unistd.h"
 
@@ -9,7 +10,7 @@
 #define FALSE			0
 #define TRUE			1
 #define OK 				2
-#define ERRORS 			3
+#define ERRORS 			30
 #define BYE 			4
 
 
@@ -61,9 +62,11 @@ static command my_unalias;
 static command my_bye;
 static command my_echo;
 
+static char* whichLocation = NULL;
 /* Externs in main.c */
 static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
+
 
 
 /********* Function Prototypes *********/
@@ -81,10 +84,18 @@ void init_scanner_and_parse();
 int yyparse();
 int readInputForLexer(char *buffer, int *numBytesRead, int maxBytesToRead);
 int isBuiltInCommand();
+void do_it(int builtin);
+
+char* findWhich();
 
 /********* Functions *********/
 
 void shell_init() {
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGTSTP, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
+
 	initializeBuiltInCommands();
 	initializeBuiltInTable();
 	initializeAliasTable();
@@ -116,25 +127,25 @@ int getCommand() {
 		return ERRORS;
 	}
 	else {
-		printf("else");
-		printf("\n%s", firstWord);
-		printf("\n%s", builtInTable[6].commandName);
+	
 		if(strcmp(firstWord, builtInTable[6].commandName) == 0){
-			printf("bye1");
+		
 			return BYE;
 		}
 		else {
-			printf("OK");
+		
 			return OK;
 		}
 	}
 }
 
 void processCommand() {
-	
-	/*if(builtin) {
-		do_it();
+	int builtin = isBuiltInCommand();
+	if(builtin != -1) {
+		printf("builtin");
+		do_it(builtin);
 	}
+	/*
 	else {
 		execute_it();
 	}*/
@@ -195,17 +206,95 @@ void printPrompt() {
 
 int isBuiltInCommand() {
 	int j;
-	
-	
 	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
 	if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
 			// first word is built in command
-			printf("In for loop");
+			printf("In for loop\n");
+			return j;
 			
-			break;
 		}
-}
+	}
 	
+	return -1;
+}
 
-	return TRUE;
+void do_it(int builtin){
+	 // location of which executable
+  //  whichLocation = malloc(sizeof(findWhich()));
+    //strcpy(whichLocation, findWhich());
+	switch(builtin) {
+		case 5: 
+			//alias();
+			//alias(name, word);
+			break;
+		case 3:
+
+			if(chdir("/home/jeffjtd/Documents/Operating-Systems") == 0)
+				printf("hellO");
+			break;
+
+	}
+	char* argv = "ARGUMENT";
+
+  /* if(execl("/bin/echo", "hello", NULL) != -1)
+    	printf("success\n\n");
+    else
+    	printf("2\n\n");
+*/
+}
+
+
+char* findWhich()
+{
+
+	char* concatMe = NULL;
+	char* path = malloc(256*sizeof(char));
+	strcpy(path, getenv("PATH"));
+	char pathDir[256];
+
+	int j = 0;
+	for(j; j < 256; ++j)
+	{
+		pathDir[j] = '\0';
+	}
+
+	strcpy(pathDir, strtok(path, ":"));	
+
+	while(pathDir != NULL)
+	{
+		if(concatMe)
+		{
+			free(concatMe);
+			concatMe = NULL;
+		}
+
+		concatMe = malloc(256*sizeof(char));
+		strcpy(concatMe, pathDir);
+		strcat(concatMe, "/which");
+		printf("\nPathdir now equals %s", concatMe);
+
+		if ( access(concatMe, F_OK) != -1)
+		{
+			printf("\nWhich found in: %s\n\n", concatMe);
+			return concatMe;
+		}
+		else
+		{
+			printf("\nWhich not found in: %s\n\n", concatMe);
+		}
+
+		int i = 0;
+		for(i; i < 256; ++i)
+		{
+			concatMe[i] = '\0';
+		}
+
+		strcpy(pathDir, strtok(NULL, ":"));	
+	}
+
+	if(path)
+	{
+		free(path);
+		path = NULL;
+	}
 }

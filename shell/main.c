@@ -22,14 +22,14 @@ int main() {
 		printPrompt();
 		switch(cmd = getCommand()){
 			case BYE:
-				printf("bye2");
+				
 				exit(0);
 				break;
 			case ERRORS:
 				//recover_from_errors();
 				break;
 			case OK:
-			printf("%d", cmd);
+			
 				processCommand();
 				break;
 		}
