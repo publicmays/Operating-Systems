@@ -33,16 +33,12 @@
 
 /* Data Structures */
 typedef struct {
-	char *args[MAXARGS];
-} argTable;
-
-typedef struct {
 	char *commandName;
 	int remote;
 	int inputFileDirectory;
 	int outputFileDirectory;
 	int numArgs;
-	argTable *argTablePtr;
+	char *args[MAXARGS];
 } command;
 
 typedef struct {
@@ -58,7 +54,6 @@ static char promptResponse[500];
 
 int wordCount = 0;
 char* firstWord;
-char* nextWord;	// delete
 /* all args after 1st word - line : cmd currentArgs[] */
 char* currentArgs[MAXARGS];
 
@@ -89,16 +84,25 @@ void initializeBuiltInTable();
 void initializeAliasTable();
 void initializeCurrentArgs();
 
-/* Prompt */
-void printPrompt();
-int getCommand();
-int getWordCount();
-void understand_errors();
-void init_scanner_and_parse();
+/* yyparse*/
 int yyparse();
 int readInputForLexer(char *buffer, int *numBytesRead, int maxBytesToRead);
+
+/* main.c - Prompt */
+void printPrompt();
+int getCommand();
+void processCommand();
+
+/* in processCommand() */
 int isBuiltInCommand();
 void do_it(int builtin);
+
+/* do_it(int) */
+void cdFunction();
+void understand_errors();
+void init_scanner_and_parse();
+
+
 void getCurrentDirectory();
 
 char* findWhich();
@@ -136,6 +140,10 @@ int getCommand() {
 	/* Reset wordCount back to 0 because newline */
 	wordCount = 0;
 	initializeCurrentArgs();
+	/* When you call yyparse
+	 * 1. firstWord is set
+	 * 2. currentArgs[] = the rest of the tokens in the line
+	 */
 	if(yyparse() != 0) {
 		// unsuccessfull
 		// understand_errors(); // YYABORT - 1
@@ -154,16 +162,15 @@ int getCommand() {
 
 void processCommand() {
 	/* Debug - see currentArgs[] in line
-	int i = 0;
-	while(currentArgs[i] != NULL) {
+	 	int i = 0;
+	 	while(currentArgs[i] != NULL) {
 		printf("%s\n",currentArgs[i]);
 		++i;
-	} */
+		} */
 	int builtin = isBuiltInCommand();
-	/*if(builtin != -1) {
-		printf("builtin");
+	if(builtin != -1) {
 		do_it(builtin);
-	}*/
+	}
 	/*
 	else {
 		execute_it();
@@ -231,15 +238,28 @@ void printPrompt() {
 
 /* Returns index of built in command in builtInTable, -1 !(builtIn command)*/
 int isBuiltInCommand() {
-	int j;
+
+	int index = -1, j, i;
+	command commandTemp;
+
 	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
 	if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
 			// first word is built in command
-			printf("It is a built in command\n");
-			return j;
+			/* set command arguments */
+			commandTemp = builtInTable[j];
+
+			for(i = 0; i < wordCount-1; ++i) {
+				commandTemp.args[i] = currentArgs[i];
+				
+				/* Debug printf("%d - %s\n", i, commandTemp.args[i] ); */
+			}
+
+			
+			index = j;
+			break;
 		}
 	}
-	return -1;
+	return index;
 }
 
 void getCurrentDirectory(){
@@ -268,7 +288,8 @@ void do_it(int builtin){
         printf("unsetenv");
         	// unsetenv();
             break;
-        case 3:			// cd
+        case 3:			
+        	cdFunction();
         printf("Path : %s\n", path);
         printf("Home path : %s\n", home);
         // chdir("../lab2");
@@ -303,7 +324,9 @@ void do_it(int builtin){
 */
 }
 
+void cdFunction() {
 
+}
 char* findWhich()
 {
 

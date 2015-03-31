@@ -78,11 +78,10 @@ extern int getWordCount();
 
 extern int wordCount;
 extern char* firstWord;
-extern char* nextWord;
 extern char* currentArgs[MAXARGS];
 
 
-#line 86 "y.tab.c" /* yacc.c:339  */
+#line 85 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -136,12 +135,12 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 21 "parser.y" /* yacc.c:355  */
+#line 20 "parser.y" /* yacc.c:355  */
 
 	int my_number;
 	char* string;
 
-#line 145 "y.tab.c" /* yacc.c:355  */
+#line 144 "y.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -156,7 +155,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 160 "y.tab.c" /* yacc.c:358  */
+#line 159 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -454,7 +453,7 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    35,    35,    36,    40,    40,    40,    43,    56,    57
+       0,    34,    34,    35,    39,    39,    39,    42,    54,    55
 };
 #endif
 
@@ -1221,11 +1220,10 @@ yyreduce:
   switch (yyn)
     {
         case 7:
-#line 43 "parser.y" /* yacc.c:1646  */
+#line 42 "parser.y" /* yacc.c:1646  */
     {
 			if(wordCount++ == 0 ) {
 				firstWord = (yyvsp[0].string);
-				nextWord = '\0';
 			}
 			if(wordCount > 1) {
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
@@ -1234,11 +1232,11 @@ yyreduce:
 			
 			}
 	}
-#line 1238 "y.tab.c" /* yacc.c:1646  */
+#line 1236 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1242 "y.tab.c" /* yacc.c:1646  */
+#line 1240 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1466,7 +1464,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 59 "parser.y" /* yacc.c:1906  */
+#line 57 "parser.y" /* yacc.c:1906  */
 
 
 

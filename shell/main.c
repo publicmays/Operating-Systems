@@ -27,7 +27,6 @@ int main() {
 				//recover_from_errors();
 				break;
 			case OK:
-			
 				processCommand();
 				break;
 		}

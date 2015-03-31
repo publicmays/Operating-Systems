@@ -13,7 +13,6 @@ extern int getWordCount();
 
 extern int wordCount;
 extern char* firstWord;
-extern char* nextWord;
 extern char* currentArgs[MAXARGS];
 
 %}
@@ -43,7 +42,6 @@ command:
 word_case: WORD {
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
-				nextWord = '\0';
 			}
 			if(wordCount > 1) {
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
