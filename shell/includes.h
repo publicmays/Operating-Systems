@@ -28,7 +28,7 @@
 #define MAX_PROMPT_LENGTH	500
 #define MAX_BUILT_IN_COMMANDS 8
 #define MAX_ALIAS 100
-#define MAXARGS 300
+#define MAXARGS 10 // 300
 #define MAXPATH 50
 
 /* Data Structures */
@@ -99,6 +99,7 @@ void do_it(int builtin);
 
 /* do_it(int) */
 void cdFunction();
+int commandArgsLength(int cmd);
 void understand_errors();
 void init_scanner_and_parse();
 
@@ -163,11 +164,12 @@ int getCommand() {
 void processCommand() {
 	/* Debug - see currentArgs[] in line
 	 	int i = 0;
-	 	while(currentArgs[i] != NULL) {
-		printf("%s\n",currentArgs[i]);
+	 	while(builtInTable[3].args[i] != NULL) {
+		printf("%s\n",builtInTable[3].args[i]);
 		++i;
-		} */
+	}*/
 	int builtin = isBuiltInCommand();
+	
 	if(builtin != -1) {
 		do_it(builtin);
 	}
@@ -181,7 +183,9 @@ void init_scanner_and_parse() {}
 
 /* Initializing all built in commands */
 void initializeBuiltInCommands() {
+	int k = 0;
 	/* Static - Only can initialize these variables once */
+	/* commandName */
 	my_setenv.commandName = "setenv";
 	my_printenv.commandName = "printenv";
 	my_unsetenv.commandName = "unsetenv";
@@ -190,6 +194,19 @@ void initializeBuiltInCommands() {
 	my_unalias.commandName = "unalias";
 	my_bye.commandName = "bye";
 	my_echo.commandName = "echo";
+	
+	/* args[] */
+	for(k; k < MAXARGS; ++k){
+		my_setenv.args[k] = NULL;
+		my_printenv.args[k] = NULL;
+		my_unsetenv.args[k] = NULL;
+		my_cd.args[k] = NULL;
+		my_alias.args[k] = NULL;
+		my_unalias.args[k] = NULL;
+		my_bye.args[k] = NULL;
+		my_echo.args[k] = NULL;
+	}
+	
 }
 
 /* Initialize built in table */
@@ -218,7 +235,16 @@ void initializeCurrentArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
 		currentArgs[i] = NULL;
+		my_setenv.args[i] = NULL;
+		my_printenv.args[i] = NULL;
+		my_unsetenv.args[i] = NULL;
+		my_cd.args[i] = NULL;
+		my_alias.args[i] = NULL;
+		my_unalias.args[i] = NULL;
+		my_bye.args[i] = NULL;
+		my_echo.args[i] = NULL;
 	}
+
 }
 void printPrompt() {
 	int i = 0;
@@ -228,39 +254,31 @@ void printPrompt() {
 	globalReadOffset = 0;
 	printf("> ");
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
-	
-	
-	// isBuiltInCommand();
-
-	// printf("%d : %s", wordCount, firstWord);
-
 }
 
 /* Returns index of built in command in builtInTable, -1 !(builtIn command)*/
 int isBuiltInCommand() {
 
 	int index = -1, j, i;
-	command commandTemp;
 
 	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
 	if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
 			// first word is built in command
 			/* set command arguments */
-			commandTemp = builtInTable[j];
+			//commandTemp = builtInTable[j];
 
 			for(i = 0; i < wordCount-1; ++i) {
-				commandTemp.args[i] = currentArgs[i];
+				builtInTable[j].args[i] = currentArgs[i];
 				
-				/* Debug printf("%d - %s\n", i, commandTemp.args[i] ); */
+				/* Debug printf("%d - %s\n", i, builtInTable[j].args[i] ); */
 			}
-
-			
 			index = j;
 			break;
 		}
 	}
 	return index;
 }
+
 
 void getCurrentDirectory(){
 	char *cwd;
@@ -290,20 +308,6 @@ void do_it(int builtin){
             break;
         case 3:			
         	cdFunction();
-        printf("Path : %s\n", path);
-        printf("Home path : %s\n", home);
-        // chdir("../lab2");
-        getCurrentDirectory();
-        /*
-        if(there are no arguments or ~)
-        {
-        	// chdir(home);
-            printf("CWD : %s\n", get_current_dir_name());
-        } 
-		else {
-			chdir(path);
-		}
-        */
             break;
         case 4:
         printf("setenv");
@@ -323,8 +327,50 @@ void do_it(int builtin){
     	printf("2\n\n");
 */
 }
-
+/* returns the amount of arguments in line after 1st token */
+int commandArgsLength(int cmd) {
+	int i = 0;
+ 	while(builtInTable[cmd].args[i] != NULL) {
+		printf("%s\n",builtInTable[cmd].args[i]);
+		++i;
+	}
+	return i;
+}
 void cdFunction() {
+	/* Debug getCurrentDirectory(); */
+
+	int cdArgLength = commandArgsLength(3);	// #define CD 3
+	
+	/* cd no arguments || cd ~*/
+	if(cdArgLength == 0 || strcmp(builtInTable[cmd].args[0], "~")){
+		chdir(home);
+		getCurrentDirectory();
+	}
+	/* cd path */
+	if(cdArgLength == 1) {
+
+	}
+	else {
+		// TO DO - THROW EXCEPTION? RECOVER FROM ERROR
+		// nuterr?
+		// handle?
+	}
+	//printf("Length - %d\n",commandArgsLength(my_cd));
+	// printf("Path : %s\n", path);
+	// printf("Home path : %s\n", home);
+    // chdir("../lab2");
+    
+        // getCurrentDirectory();
+        /*
+        if(there are no arguments or ~)
+        {
+        	// chdir(home);
+            printf("CWD : %s\n", get_current_dir_name());
+        } 
+		else {
+			chdir(path);
+		}
+        */
 
 }
 char* findWhich()
