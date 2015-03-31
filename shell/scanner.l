@@ -16,7 +16,13 @@ extern int wordCount;
 %%
 
 
-								
+setenv										return SETENV;
+printenv									return PRINTENV;
+unsetenv									return UNSETENV;
+CD											return CD;
+alias										return ALAS;
+unalias										return UNALIAS;
+
 \{											return OPEN_BRACE;
 \}											return CLOSE_BRACE;
 "\""[^\n]*"\"" 								return QUOTED; /* To do */
