@@ -595,3 +595,34 @@ void printaliasFunction() {
 		if(aliasTable[i].used == 1)
 			printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
 }
+
+/* make prototype */
+
+int checkVariable(char* c) {
+	char firstToken = -1;
+	int i = 65;
+	int flag = FALSE;
+	/*if((char)0 - 64 || (char)91  94 || (char)122 - 127)
+		false;
+
+		if(firstToken)
+			letter
+			return true;
+
+			aa _ 9 2008
+	*/
+
+
+	for(i; i < 91; i++) {
+		if(c == (char)i)
+			return TRUE;
+	}
+	i = 95
+	for(i; i < 122; i++) {
+		if(c == (char)i)
+			return TRUE;
+	}
+	return -FALSE;
+
+	/* CAN HAVE - 65 - 90, 95 - 122 */
+}
