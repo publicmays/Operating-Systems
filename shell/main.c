@@ -3,6 +3,7 @@
  * File : main.c
  * Version : 1.0
  * Comments : include echo in builtin command
+ * cd
 ************************/
 #include "includes.h"
 /************** Externs **************/
@@ -14,7 +15,6 @@ extern command builtInTable[MAX_BUILT_IN_COMMANDS];
 extern alias aliasTable[MAX_ALIAS];
 
 /* Function Prototypes */
-
 int main() {
 	shell_init();
 	while(1) {

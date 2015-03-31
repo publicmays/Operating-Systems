@@ -453,7 +453,7 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    34,    34,    35,    39,    39,    39,    42,    54,    55
+       0,    34,    34,    35,    39,    39,    39,    42,    56,    57
 };
 #endif
 
@@ -1222,21 +1222,23 @@ yyreduce:
         case 7:
 #line 42 "parser.y" /* yacc.c:1646  */
     {
+			// printf("word\n");
 			if(wordCount++ == 0 ) {
 				firstWord = (yyvsp[0].string);
 			}
 			if(wordCount > 1) {
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
+
 				currentArgs[wordCount-2] = (yyvsp[0].string);
 				// debug - printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
 			
 			}
 	}
-#line 1236 "y.tab.c" /* yacc.c:1646  */
+#line 1238 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1240 "y.tab.c" /* yacc.c:1646  */
+#line 1242 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1464,7 +1466,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 57 "parser.y" /* yacc.c:1906  */
+#line 59 "parser.y" /* yacc.c:1906  */
 
 
 

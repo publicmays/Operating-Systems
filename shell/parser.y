@@ -40,11 +40,13 @@ command:
 	;
 
 word_case: WORD {
+			// printf("word\n");
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
 			}
 			if(wordCount > 1) {
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
+
 				currentArgs[wordCount-2] = $1;
 				// debug - printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
 			

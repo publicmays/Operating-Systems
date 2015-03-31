@@ -171,6 +171,7 @@ void processCommand() {
 	int builtin = isBuiltInCommand();
 	
 	if(builtin != -1) {
+		printf("process Command");
 		do_it(builtin);
 	}
 	/*
@@ -276,6 +277,7 @@ int isBuiltInCommand() {
 			break;
 		}
 	}
+
 	return index;
 }
 
@@ -306,7 +308,8 @@ void do_it(int builtin){
         printf("unsetenv");
         	// unsetenv();
             break;
-        case 3:			
+        case 3:		
+
         	cdFunction();
             break;
         case 4:
@@ -331,7 +334,7 @@ void do_it(int builtin){
 int commandArgsLength(int cmd) {
 	int i = 0;
  	while(builtInTable[cmd].args[i] != NULL) {
-		printf("%s\n",builtInTable[cmd].args[i]);
+		// debug - printf("%s\n",builtInTable[cmd].args[i]);
 		++i;
 	}
 	return i;
@@ -341,16 +344,32 @@ void cdFunction() {
 
 	int cdArgLength = commandArgsLength(3);	// #define CD 3
 	
-	/* cd no arguments || cd ~*/
-	if(cdArgLength == 0 || strcmp(builtInTable[cmd].args[0], "~")){
-		chdir(home);
-		getCurrentDirectory();
-	}
-	/* cd path */
-	if(cdArgLength == 1) {
+	if(cdArgLength <= 1){
+		/* cd no arguments || cd ~*/
+		if(cdArgLength == 0 || strcmp(builtInTable[cmd].args[0], "~")){
+			chdir(home);
+			getCurrentDirectory();
+		}
+		/* cd path */
+		if(cdArgLength == 1) {
+			//chdir('cise/homes/kathleen/Documents');			
 
+			if(chdir(builtInTable[cmd].args[0]) == 0) {
+				// chdir return 0 - sucessful
+				getCurrentDirectory();
+			}
+			else {
+				printf("not sucessfull");
+			}
+			// need to check if it's a correct path
+		}
+		else {
+			printf("more than 1 argument");
+		}
 	}
+
 	else {
+		printf("ELSE - more than 1 argument");
 		// TO DO - THROW EXCEPTION? RECOVER FROM ERROR
 		// nuterr?
 		// handle?
