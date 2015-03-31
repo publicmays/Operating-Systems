@@ -29,6 +29,7 @@ extern char* currentArgs[MAXARGS];
 %token NEWLINE
 
 %type <string> word_case 
+%type <string> quoted_case 
 
 %%
 commands: 
@@ -36,11 +37,11 @@ commands:
 	;
 
 command:
-	word_case | open_brace_case | close_brace_case
+	word_case | open_brace_case | close_brace_case | quoted_case
 	;
 
 word_case: WORD {
-			// printf("word\n");
+
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
 			}
@@ -52,11 +53,15 @@ word_case: WORD {
 			
 			}
 	};
+quoted_case: QUOTED {
+			printf("Inside quoted");
+	};
 
 open_brace_case: OPEN_BRACE;
 close_brace_case: CLOSE_BRACE;
 
 %%
+
 
 
 
