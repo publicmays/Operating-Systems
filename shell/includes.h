@@ -15,7 +15,7 @@
 
 /* Built in Commands */
 #define SETENV          0;
-#define PRINT_ENV       1;
+#define PRINTENV       	1;
 #define UNSETENV        2;
 #define CD              3;
 #define ALIAS           4;
@@ -51,13 +51,16 @@ typedef struct {
 	char *aliasContent;
 } alias;
 
-/************** Globals **************/
+/******************************* Globals *******************************/
 /* Prompt */
 static int globalReadOffset;
 static char promptResponse[500];
 
 int wordCount = 0;
 char* firstWord;
+char* nextWord;	// delete
+/* all args after 1st word - line : cmd currentArgs[] */
+char* currentArgs[MAXARGS];
 
 char* path;
 char* home;
@@ -73,17 +76,18 @@ static command my_bye;
 static command my_echo;
 
 static char* whichLocation = NULL;
+
 /* Externs in main.c */
 static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
 
 
-
-/********* Function Prototypes *********/
+/******************************* Function Prototypes *******************************/
 /* Initialization */
 void initializeBuiltInCommands();
 void initializeBuiltInTable();
 void initializeAliasTable();
+void initializeCurrentArgs();
 
 /* Prompt */
 void printPrompt();
@@ -95,6 +99,7 @@ int yyparse();
 int readInputForLexer(char *buffer, int *numBytesRead, int maxBytesToRead);
 int isBuiltInCommand();
 void do_it(int builtin);
+void getCurrentDirectory();
 
 char* findWhich();
 
@@ -108,6 +113,7 @@ void shell_init() {
 	initializeBuiltInCommands();
 	initializeBuiltInTable();
 	initializeAliasTable();
+	initializeCurrentArgs();
 	
 	/* Initialize all our tables and variables */
 	/* Initialize all variables */
@@ -129,28 +135,35 @@ int getCommand() {
 	*/
 	/* Reset wordCount back to 0 because newline */
 	wordCount = 0;
+	initializeCurrentArgs();
 	if(yyparse() != 0) {
 		// unsuccessfull
 		// understand_errors(); // YYABORT - 1
 		return ERRORS;
 	}
 	else {
-	
 		if(strcmp(firstWord, builtInTable[6].commandName) == 0){
 			return BYE;
 		}
 		else {
+
 			return OK;
 		}
 	}
 }
 
 void processCommand() {
+	/* Debug - see currentArgs[] in line
+	int i = 0;
+	while(currentArgs[i] != NULL) {
+		printf("%s\n",currentArgs[i]);
+		++i;
+	} */
 	int builtin = isBuiltInCommand();
-	if(builtin != -1) {
+	/*if(builtin != -1) {
 		printf("builtin");
 		do_it(builtin);
-	}
+	}*/
 	/*
 	else {
 		execute_it();
@@ -194,6 +207,12 @@ void initializeAliasTable() {
 	}
 }
 
+void initializeCurrentArgs() {
+	int i = 0;
+	for(i; i < MAXARGS; ++i) {
+		currentArgs[i] = NULL;
+	}
+}
 void printPrompt() {
 	int i = 0;
 	for(i; i < MAX_PROMPT_LENGTH; ++i) {
@@ -210,6 +229,7 @@ void printPrompt() {
 
 }
 
+/* Returns index of built in command in builtInTable, -1 !(builtIn command)*/
 int isBuiltInCommand() {
 	int j;
 	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
@@ -217,11 +237,19 @@ int isBuiltInCommand() {
 			// first word is built in command
 			printf("It is a built in command\n");
 			return j;
-			
 		}
 	}
-	
 	return -1;
+}
+
+void getCurrentDirectory(){
+	char *cwd;
+          if ((cwd = getcwd(NULL, 64)) == NULL) {
+              perror("pwd");
+              exit(2);
+          }
+          (void)printf("%s\n", cwd);
+          free(cwd); /* free memory allocated by getcwd() */
 }
 
 void do_it(int builtin){
@@ -237,15 +265,24 @@ void do_it(int builtin){
         printf("setenv");
             break;
         case 2:
-        printf("setenv");
+        printf("unsetenv");
+        	// unsetenv();
             break;
-        case 3:
+        case 3:			// cd
         printf("Path : %s\n", path);
         printf("Home path : %s\n", home);
-        if(chdir("/home/jeffjtd/Documents/Operating-Systems") == 0)
+        // chdir("../lab2");
+        getCurrentDirectory();
+        /*
+        if(there are no arguments or ~)
         {
+        	// chdir(home);
             printf("CWD : %s\n", get_current_dir_name());
-        }
+        } 
+		else {
+			chdir(path);
+		}
+        */
             break;
         case 4:
         printf("setenv");

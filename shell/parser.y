@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-//#define YYSTYPE char*
+#define MAXARGS 300
 
 extern void yyerror(char* s);
 extern int yylex();
@@ -13,6 +13,8 @@ extern int getWordCount();
 
 extern int wordCount;
 extern char* firstWord;
+extern char* nextWord;
+extern char* currentArgs[MAXARGS];
 
 %}
 
@@ -41,9 +43,15 @@ command:
 word_case: WORD {
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
+				nextWord = '\0';
 			}
-			// printf("%d : %s", wordCount, firstWord);
-			};
+			if(wordCount > 1) {
+				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
+				currentArgs[wordCount-2] = $1;
+				// debug - printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
+			
+			}
+	};
 
 open_brace_case: OPEN_BRACE;
 close_brace_case: CLOSE_BRACE;

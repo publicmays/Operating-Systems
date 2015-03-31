@@ -15,14 +15,12 @@ extern alias aliasTable[MAX_ALIAS];
 
 /* Function Prototypes */
 
-
 int main() {
 	shell_init();
 	while(1) {
 		printPrompt();
 		switch(cmd = getCommand()){
 			case BYE:
-				
 				exit(0);
 				break;
 			case ERRORS:
