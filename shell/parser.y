@@ -25,7 +25,7 @@ extern char* firstWord;
 %token <string> QUOTED
 %token <string> OPEN_BRACE;
 %token <string> CLOSE_BRACE;
-%token ECHO NEWLINE
+%token NEWLINE
 
 %type <string> word_case 
 

@@ -7,11 +7,21 @@
 
 #define allocate(t)		(t *)malloc(sizeof(t))
 /* getCommand() */
-#define FALSE			0
-#define TRUE			1
-#define OK 				2
-#define ERRORS 			30
-#define BYE 			4
+#define FALSE			100
+#define TRUE			101
+#define OK 				102
+#define ERRORS 			103
+#define BYE 			104
+
+/* Built in Commands */
+#define SETENV          0;
+#define PRINT_ENV       1;
+#define UNSETENV        2;
+#define CD              3;
+#define ALIAS           4;
+#define UNALIAS         5;
+// BYE
+#define ECHO            7;
 
 
 /* MAX */
@@ -94,7 +104,6 @@ void shell_init() {
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
 
 	initializeBuiltInCommands();
 	initializeBuiltInTable();
@@ -102,23 +111,22 @@ void shell_init() {
 	
 	/* Initialize all our tables and variables */
 	/* Initialize all variables */
-	path = allocate(char);
+	path = malloc(256*sizeof(char));
 	home = allocate(char);
 	strcpy(path, getenv("PATH"));
 	strcpy(home, getenv("HOME"));
 
-	/* If user hits ctrl + c, find a way to disable all exits */
 	cmd = -1;
-	/* 
-		0 - successful
-		1 - parse failed, invalid input
-		2 - failed due to memory exhaustion
-	*/
+
 }
 
 int getCommand() {
 	// init_scanner_and_parse();	// TODO
-
+    /* YYPARSE 
+		0 - successful
+		1 - parse failed, invalid input
+		2 - failed due to memory exhaustion
+	*/
 	/* Reset wordCount back to 0 because newline */
 	wordCount = 0;
 	if(yyparse() != 0) {
@@ -129,11 +137,9 @@ int getCommand() {
 	else {
 	
 		if(strcmp(firstWord, builtInTable[6].commandName) == 0){
-		
 			return BYE;
 		}
 		else {
-		
 			return OK;
 		}
 	}
@@ -209,7 +215,7 @@ int isBuiltInCommand() {
 	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
 	if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
 			// first word is built in command
-			printf("In for loop\n");
+			printf("It is a built in command\n");
 			return j;
 			
 		}
@@ -223,16 +229,33 @@ void do_it(int builtin){
   //  whichLocation = malloc(sizeof(findWhich()));
     //strcpy(whichLocation, findWhich());
 	switch(builtin) {
-		case 5: 
-			//alias();
-			//alias(name, word);
+		case 0:
+            printf("setenv");
+			//setenv
 			break;
-		case 3:
-
-			if(chdir("/home/jeffjtd/Documents/Operating-Systems") == 0)
-				printf("hellO");
-			break;
-
+        case 1:
+        printf("setenv");
+            break;
+        case 2:
+        printf("setenv");
+            break;
+        case 3:
+        printf("Path : %s\n", path);
+        printf("Home path : %s\n", home);
+        if(chdir("/home/jeffjtd/Documents/Operating-Systems") == 0)
+        {
+            printf("CWD : %s\n", get_current_dir_name());
+        }
+            break;
+        case 4:
+        printf("setenv");
+            break;
+        case 5:
+        printf("setenv");
+            break;
+		case 7:
+        printf("setenv");
+            break;
 	}
 	char* argv = "ARGUMENT";
 
@@ -248,7 +271,7 @@ char* findWhich()
 {
 
 	char* concatMe = NULL;
-	char* path = malloc(256*sizeof(char));
+	// char* path = malloc(256*sizeof(char));
 	strcpy(path, getenv("PATH"));
 	char pathDir[256];
 
