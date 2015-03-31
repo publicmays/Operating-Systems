@@ -28,7 +28,8 @@
 #define MAX_PROMPT_LENGTH	500
 #define MAX_BUILT_IN_COMMANDS 8
 #define MAX_ALIAS 100
-#define MAXARGS 10 // 300
+#define MAX_VARIABLES 100
+#define MAXARGS 300
 #define MAXPATH 50
 
 /* Data Structures */
@@ -46,6 +47,12 @@ typedef struct {
 	char *aliasName;
 	char *aliasContent;
 } alias;
+
+typedef struct {
+	int used; 
+	char *variable;
+	char *word;
+} variable;
 
 /******************************* Globals *******************************/
 /* Prompt */
@@ -75,7 +82,7 @@ static char* whichLocation = NULL;
 /* Externs in main.c */
 static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
-
+static variable variableTable[MAX_VARIABLES];
 
 /******************************* Function Prototypes *******************************/
 /* Initialization */
@@ -83,6 +90,7 @@ void initializeBuiltInCommands();
 void initializeBuiltInTable();
 void initializeAliasTable();
 void initializeCurrentArgs();
+void initializeVariableTable();
 
 /* yyparse*/
 int yyparse();
@@ -99,6 +107,13 @@ void do_it(int builtin);
 
 /* do_it(int) */
 void cdFunction();
+int setenvFunction();
+int unsetenvFunction();
+void printenvFunction();
+void printaliasFunction();
+int aliasFunction();
+int unaliasFunction();
+
 int commandArgsLength(int cmd);
 void understand_errors();
 void init_scanner_and_parse();
@@ -118,6 +133,7 @@ void shell_init() {
 	initializeBuiltInCommands();
 	initializeBuiltInTable();
 	initializeAliasTable();
+	initializeVariableTable();
 	initializeCurrentArgs();
 	
 	/* Initialize all our tables and variables */
@@ -171,6 +187,7 @@ void processCommand() {
 	int builtin = isBuiltInCommand();
 	
 	if(builtin != -1) {
+
 		do_it(builtin);
 	}
 	/*
@@ -231,18 +248,34 @@ void initializeAliasTable() {
 	}
 }
 
+void initializeVariableTable() {
+	int i = 0;
+	for(i; i < MAX_VARIABLES; ++i) {
+		variableTable[i].used = 0;
+		variableTable[i].variable = NULL;
+		variableTable[i].word = NULL;
+	}
+}
+
 void initializeCurrentArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
 		currentArgs[i] = NULL;
-		my_setenv.args[i] = NULL;
+		/*my_setenv.args[i] = NULL;
 		my_printenv.args[i] = NULL;
 		my_unsetenv.args[i] = NULL;
 		my_cd.args[i] = NULL;
 		my_alias.args[i] = NULL;
 		my_unalias.args[i] = NULL;
 		my_bye.args[i] = NULL;
-		my_echo.args[i] = NULL;
+		my_echo.args[i] = NULL;*/
+		builtInTable[0].args[i] = NULL;
+		builtInTable[1].args[i] = NULL;
+		builtInTable[2].args[i] = NULL;
+		builtInTable[3].args[i] = NULL;
+		builtInTable[4].args[i] = NULL;
+		builtInTable[5].args[i] = NULL;
+		builtInTable[7].args[i] = NULL;
 	}
 
 }
@@ -267,15 +300,17 @@ int isBuiltInCommand() {
 			/* set command arguments */
 			//commandTemp = builtInTable[j];
 
-			for(i = 0; i < wordCount-1; ++i) {
+			/*Extra blank argument produced with -1, changed to -2*/
+			for(i = 0; i < wordCount-2; ++i) {
 				builtInTable[j].args[i] = currentArgs[i];
-				
-				/* Debug printf("%d - %s\n", i, builtInTable[j].args[i] ); */
+				// 	THIS IS THE ONE THAT PRINTS CORECTLY NOT PARSER.Y
+				// printf("%d - %s\n", i, currentArgs[i] );
 			}
 			index = j;
 			break;
 		}
 	}
+
 	return index;
 }
 
@@ -296,24 +331,23 @@ void do_it(int builtin){
     //strcpy(whichLocation, findWhich());
 	switch(builtin) {
 		case 0:
-            printf("setenv");
-			//setenv
+            setenvFunction();
 			break;
         case 1:
-        printf("setenv");
+        	printenvFunction();
             break;
         case 2:
-        printf("unsetenv");
+        	unsetenvFunction();
         	// unsetenv();
             break;
-        case 3:			
+        case 3:		
         	cdFunction();
             break;
         case 4:
-        printf("setenv");
+        	aliasFunction();
             break;
         case 5:
-        printf("setenv");
+        	unaliasFunction();
             break;
 		case 7:
         printf("setenv");
@@ -338,39 +372,43 @@ int commandArgsLength(int cmd) {
 }
 void cdFunction() {
 	/* Debug getCurrentDirectory(); */
+	int cdIndex = 3;
+	int cdArgLength = commandArgsLength(cdIndex);	// #define CD 3
 
-	int cdArgLength = commandArgsLength(3);	// #define CD 3
-	
-	/* cd no arguments || cd ~*/
-	if(cdArgLength == 0 || strcmp(builtInTable[cmd].args[0], "~")){
-		chdir(home);
-		getCurrentDirectory();
-	}
-	/* cd path */
-	if(cdArgLength == 1) {
 
-	}
-	else {
-		// TO DO - THROW EXCEPTION? RECOVER FROM ERROR
-		// nuterr?
-		// handle?
-	}
-	//printf("Length - %d\n",commandArgsLength(my_cd));
-	// printf("Path : %s\n", path);
-	// printf("Home path : %s\n", home);
-    // chdir("../lab2");
-    
-        // getCurrentDirectory();
-        /*
-        if(there are no arguments or ~)
-        {
-        	// chdir(home);
-            printf("CWD : %s\n", get_current_dir_name());
-        } 
-		else {
-			chdir(path);
+	/* "path", 'path' - 3 tokens */
+	if(cdArgLength <= 3){
+		// TODO - NEED TO IMPLEMENTE CD ~ !!!!!!!
+
+		/* need to implement a for loop for cd
+		*/ 
+		//printf("%d\n", cdArgLength);
+		//printf("%s\n", builtInTable[cdIndex].args[0]);
+		if(cdArgLength == 0){
+				// || strcmp(builtInTable[3].args[0], "~")
+				printf("hello");
+				chdir(home);
+				getCurrentDirectory();
 		}
-        */
+		/* cd path argLength = 1*/
+		else if(chdir(builtInTable[cdIndex].args[0]) == 0) {
+				// sucessfull
+
+				// getCurrentDirectory();
+		}
+	
+		else {
+			// go to
+			printf("cd - path was not successful.\n");
+		}
+			// need to check if it's a correct path
+	}
+	
+	else {
+		printf("%d\n", cdArgLength);
+		printf("%s\n", builtInTable[cdIndex].args[0]);
+		printf("more than 1 argument");
+	}
 
 }
 char* findWhich()
@@ -426,4 +464,134 @@ char* findWhich()
 		free(path);
 		path = NULL;
 	}
+}
+
+int setenvFunction() {
+	char * variable = builtInTable[0].args[0];
+	char * word = builtInTable[0].args[1];
+	int cmd = 0;
+	int setenv_argLength = commandArgsLength(cmd);
+	// printf("variable:%d\n", setenv_argLength);
+	//printf("word:%s\n", word);
+
+	if(variable != NULL && word != NULL) {
+		int i;
+
+		/*Checks to see if the variable name already exists*/
+		for(i = 0; i < MAX_VARIABLES; i++) {
+			if(variableTable[i].used == 1) {
+				if(strcmp(variableTable[i].variable, variable) == 0) {
+					printf("Variable name already exists.\n");
+					return -1;
+				}
+			}
+		}
+		if(setenv_argLength == 2){
+			/*Attempts to put the variable into the table*/
+			for(i = 0; i < MAX_VARIABLES; i++) {
+				if(variableTable[i].used == 0) {
+					variableTable[i].variable = variable;
+					variableTable[i].word = word;
+					variableTable[i].used = 1;
+					return 0;
+				}
+			}
+		}
+	}
+	printf("Unable to set variable.\n");
+	return -1;
+}
+
+int unsetenvFunction() {
+	char * variable = builtInTable[2].args[0];
+
+	if(variable != NULL) {
+		int i;
+
+		/*Attempts to remove variable from the table*/
+		for(i = 0; i < MAX_VARIABLES; i++) {
+			if(variableTable[i].used == 1) {
+				if(strcmp(variableTable[i].variable, variable) == 0) {
+					variableTable[i].variable = NULL;
+					variableTable[i].word = NULL;
+					variableTable[i].used = 0;
+					return 0;
+				}
+			}
+		}
+	}
+	printf("Unable to remove variable.\n");
+	return -1;
+}
+
+void printenvFunction() {
+	int i = 0;
+
+	/*Print variable table*/
+	for(i; i < MAX_VARIABLES; i++)
+		if(variableTable[i].used == 1)
+			printf("%s = %s\n", variableTable[i].variable, variableTable[i].word);
+}
+
+int aliasFunction() {
+	char * name = builtInTable[4].args[0];
+	char * word = builtInTable[4].args[1];
+
+	if(name != NULL && word != NULL) {
+		int i;
+
+		/*Checks to see if the alias name already exists*/
+		for(i = 0; i < MAX_ALIAS; i++) {
+			if(aliasTable[i].used == 1) {
+				if(strcmp(aliasTable[i].aliasName, name) == 0) {
+					printf("Alias name already exists.\n");
+					return -1;
+				}
+			}
+		}
+
+		/*Attempts to add the alias to the table*/
+		for(i = 0; i < MAX_ALIAS; i++) {
+			if(aliasTable[i].used == 0) {
+				aliasTable[i].aliasName = name;
+				aliasTable[i].aliasContent = word;
+				aliasTable[i].used = 1;
+				return 0;
+			}
+		}
+		printf("Unable to add alias.\n");
+		return -1;
+	}
+
+	/*P*/ 
+	else if(name == NULL && word == NULL) printaliasFunction();
+	return -1;
+}
+
+int  unaliasFunction() {
+	char * name = builtInTable[5].args[0];
+
+	if(name != NULL) {
+		int i;
+		for(i = 0; i < MAX_ALIAS; i++) {
+			if(aliasTable[i].used == 1) {
+				if(strcmp(aliasTable[i].aliasName, name) == 0) {
+					aliasTable[i].aliasName = NULL;
+					aliasTable[i].aliasContent = NULL;
+					aliasTable[i].used = 0;
+					return 0;
+				}
+			}
+		}
+		printf("Unable to remove alias.\n");
+		return -1;
+	}
+	return -1;
+}
+
+void printaliasFunction() {
+	int i = 0;
+	for(i; i < MAX_ALIAS; i++)
+		if(aliasTable[i].used == 1)
+			printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
 }

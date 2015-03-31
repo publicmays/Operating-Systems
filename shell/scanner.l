@@ -16,20 +16,20 @@ extern int wordCount;
 %%
 
 
-setenv										return SETENV;
-printenv									return PRINTENV;
-unsetenv									return UNSETENV;
-CD											return CD;
-alias										return ALAS;
-unalias										return UNALIAS;
-
+								
 \{											return OPEN_BRACE;
 \}											return CLOSE_BRACE;
-"\""[^\n]*"\"" 								return QUOTED; /* To do */
-[a-zA-Z]+[0-9]*								{yylval.string = strdup(yytext);return WORD;};
+
+
 \n | ";"									{ wordCount = 0; return END;};
-[ \t\r\s]+									/* ignore whitespace */
+"\""[^\n]*"\""							{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
+											yylval.string[0] = '\0'; yylval.string++; return WORD; } 
+[\'][^\n]*[\']*\								{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
+											yylval.string[0] = '\0'; yylval.string++; return WORD; }											
+[/a-zA-Z\'\_]+[a-zA-Z0-9\_\-\']*				{yylval.string = strdup(yytext);return WORD;};
+[ \t\r]									/* ignore whitespace */
 .											/* everything else = error */
+
 
 
 %%

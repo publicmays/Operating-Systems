@@ -45,19 +45,21 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    WORD = 258,
-    QUOTED = 259,
-    OPEN_BRACE = 260,
-    CLOSE_BRACE = 261,
-    NEWLINE = 262
+    VARIABLE = 258,
+    WORD = 259,
+    QUOTED = 260,
+    OPEN_BRACE = 261,
+    CLOSE_BRACE = 262,
+    NEWLINE = 263
   };
 #endif
 /* Tokens.  */
-#define WORD 258
-#define QUOTED 259
-#define OPEN_BRACE 260
-#define CLOSE_BRACE 261
-#define NEWLINE 262
+#define VARIABLE 258
+#define WORD 259
+#define QUOTED 260
+#define OPEN_BRACE 261
+#define CLOSE_BRACE 262
+#define NEWLINE 263
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -69,7 +71,7 @@ union YYSTYPE
 	int my_number;
 	char* string;
 
-#line 73 "y.tab.h" /* yacc.c:1909  */
+#line 75 "y.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

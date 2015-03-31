@@ -22,6 +22,7 @@ extern char* currentArgs[MAXARGS];
 	char* string;
 }
 
+%token <string> VARIABLE
 %token <string> WORD
 %token <string> QUOTED
 %token <string> OPEN_BRACE;
@@ -29,6 +30,7 @@ extern char* currentArgs[MAXARGS];
 %token NEWLINE
 
 %type <string> word_case 
+%type <string> quoted_case 
 
 %%
 commands: 
@@ -36,25 +38,32 @@ commands:
 	;
 
 command:
-	word_case | open_brace_case | close_brace_case
+	word_case | open_brace_case | close_brace_case | quoted_case
 	;
 
 word_case: WORD {
+
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
 			}
 			if(wordCount > 1) {
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
+
 				currentArgs[wordCount-2] = $1;
-				// debug - printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
+				 // printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
 			
 			}
+	};
+
+quoted_case: QUOTED {
+			printf("Inside quoted");
 	};
 
 open_brace_case: OPEN_BRACE;
 close_brace_case: CLOSE_BRACE;
 
 %%
+
 
 
 
