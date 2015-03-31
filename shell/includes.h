@@ -28,7 +28,7 @@
 #define MAX_PROMPT_LENGTH	500
 #define MAX_BUILT_IN_COMMANDS 8
 #define MAX_ALIAS 100
-#define MAXARGS 10 // 300
+#define MAXARGS 300
 #define MAXPATH 50
 
 /* Data Structures */
@@ -171,7 +171,7 @@ void processCommand() {
 	int builtin = isBuiltInCommand();
 	
 	if(builtin != -1) {
-		printf("process Command");
+
 		do_it(builtin);
 	}
 	/*
@@ -341,55 +341,41 @@ int commandArgsLength(int cmd) {
 }
 void cdFunction() {
 	/* Debug getCurrentDirectory(); */
+	int cdIndex = 3;
+	int cdArgLength = commandArgsLength(cdIndex);	// #define CD 3
 
-	int cdArgLength = commandArgsLength(3);	// #define CD 3
-	
-	if(cdArgLength <= 1){
-		/* cd no arguments || cd ~*/
-		if(cdArgLength == 0 || strcmp(builtInTable[cmd].args[0], "~")){
-			chdir(home);
-			getCurrentDirectory();
-		}
-		/* cd path */
-		if(cdArgLength == 1) {
-			//chdir('cise/homes/kathleen/Documents');			
 
-			if(chdir(builtInTable[cmd].args[0]) == 0) {
-				// chdir return 0 - sucessful
+	/* "path", 'path' - 3 tokens */
+	if(cdArgLength <= 3){
+		// TODO - NEED TO IMPLEMENTE CD ~ !!!!!!!
+
+		/* need to implement a for loop for cd
+		*/ 
+		printf("%d\n", cdArgLength);
+		printf("%s\n", builtInTable[cdIndex].args[0]);
+		if(cdArgLength == 1 || strcmp(builtInTable[cdIndex].args[0], " ") == 0){
+				// || strcmp(builtInTable[3].args[0], "~")
+				chdir(home);
 				getCurrentDirectory();
-			}
-			else {
-				printf("not sucessfull");
-			}
+		}
+		/* cd path argLength = 1*/
+		else if(chdir(builtInTable[cdIndex].args[0]) == 0) {
+				// sucessfull
+				getCurrentDirectory();
+		}
+	
+		else {
+			// go to
+			printf("cd - path was not successfull\n");
+		}
 			// need to check if it's a correct path
-		}
-		else {
-			printf("more than 1 argument");
-		}
 	}
-
+	
 	else {
-		printf("ELSE - more than 1 argument");
-		// TO DO - THROW EXCEPTION? RECOVER FROM ERROR
-		// nuterr?
-		// handle?
+		printf("%d\n", cdArgLength);
+		printf("%s\n", builtInTable[cdIndex].args[0]);
+		printf("more than 1 argument");
 	}
-	//printf("Length - %d\n",commandArgsLength(my_cd));
-	// printf("Path : %s\n", path);
-	// printf("Home path : %s\n", home);
-    // chdir("../lab2");
-    
-        // getCurrentDirectory();
-        /*
-        if(there are no arguments or ~)
-        {
-        	// chdir(home);
-            printf("CWD : %s\n", get_current_dir_name());
-        } 
-		else {
-			chdir(path);
-		}
-        */
 
 }
 char* findWhich()
