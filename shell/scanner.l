@@ -19,12 +19,16 @@ extern int wordCount;
 								
 \{											return OPEN_BRACE;
 \}											return CLOSE_BRACE;
-"\""[^\n]*"\"" 								return QUOTED; /* To do */
-[\/a-zA-Z]+[a-zA-Z0-9\_\-\']					{yylval.string = strdup(yytext);return WORD;};
+
+
 \n | ";"									{ wordCount = 0; return END;};
+"\""[^\n]*"\""							{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
+											yylval.string[0] = '\0'; yylval.string++; return WORD; } 
+[\'][^\n]*[\']								{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
+											yylval.string[0] = '\0'; yylval.string++; return WORD; }											
+[/a-zA-Z\'\_]+[a-zA-Z0-9\_\-\']				{yylval.string = strdup(yytext);return WORD;};
 [ \t\r\s]+									/* ignore whitespace */
 .											/* everything else = error */
-
 
 
 
