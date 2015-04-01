@@ -2,10 +2,11 @@
  * Name : Kathleen Lew 
  * File : main.c
  * Version : 1.0
- * Comments : include echo in builtin command
- * cd
+ * Comments : work on cd, alias
 ************************/
 #include "includes.h"
+
+
 /************** Externs **************/
 /* Prompt */
 extern int globalReadOffset;

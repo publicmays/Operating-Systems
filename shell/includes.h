@@ -1,59 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include "y.tab.h"
-#include "unistd.h"
-
-#define allocate(t)		(t *)malloc(sizeof(t))
-/* getCommand() */
-#define FALSE			100
-#define TRUE			101
-#define OK 				102
-#define ERRORS 			103
-#define BYE 			104
-
-/* Built in Commands */
-#define SETENV          0;
-#define PRINTENV       	1;
-#define UNSETENV        2;
-#define CD              3;
-#define ALIAS           4;
-#define UNALIAS         5;
-// BYE
-#define ECHO            7;
-
-
-/* MAX */
-#define MAX_PROMPT_LENGTH	500
-#define MAX_BUILT_IN_COMMANDS 8
-#define MAX_ALIAS 100
-#define MAX_VARIABLES 100
-#define MAXARGS 300
-#define MAXPATH 50
-
-/* Data Structures */
-typedef struct {
-	char *commandName;
-	int remote;
-	int inputFileDirectory;
-	int outputFileDirectory;
-	int numArgs;
-	char *args[MAXARGS];
-} command;
-
-typedef struct {
-	int used;		// when user calls alias ++used, unalias --used
-	char *aliasName;
-	char *aliasContent;
-} alias;
-
-typedef struct {
-	int used; 
-	char *variable;
-	char *word;
-} variable;
-
+#include "define.h"
 /******************************* Globals *******************************/
 /* Prompt */
 static int globalReadOffset;
@@ -75,7 +20,6 @@ static command my_cd;
 static command my_alias;
 static command my_unalias;
 static command my_bye;
-static command my_echo;
 
 static char* whichLocation = NULL;
 
@@ -84,43 +28,7 @@ static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
 static variable variableTable[MAX_VARIABLES];
 
-/******************************* Function Prototypes *******************************/
-/* Initialization */
-void initializeBuiltInCommands();
-void initializeBuiltInTable();
-void initializeAliasTable();
-void initializeCurrentArgs();
-void initializeVariableTable();
 
-/* yyparse*/
-int yyparse();
-int readInputForLexer(char *buffer, int *numBytesRead, int maxBytesToRead);
-
-/* main.c - Prompt */
-void printPrompt();
-int getCommand();
-void processCommand();
-
-/* in processCommand() */
-int isBuiltInCommand();
-void do_it(int builtin);
-
-/* do_it(int) */
-void cdFunction();
-void getCurrentDirectory();
-int setenvFunction();
-int unsetenvFunction();
-void printenvFunction();
-void printaliasFunction();
-int aliasFunction();
-int unaliasFunction();
-
-int checkVariable(char* c);
-int commandArgsLength(int cmd);
-void understand_errors();
-void init_scanner_and_parse();
-
-char* findWhich();
 
 /********* Functions *********/
 
@@ -209,7 +117,7 @@ void initializeBuiltInCommands() {
 	my_alias.commandName = "alias";
 	my_unalias.commandName = "unalias";
 	my_bye.commandName = "bye";
-	my_echo.commandName = "echo";
+
 	
 	/* args[] */
 	for(k; k < MAXARGS; ++k){
@@ -220,7 +128,7 @@ void initializeBuiltInCommands() {
 		my_alias.args[k] = NULL;
 		my_unalias.args[k] = NULL;
 		my_bye.args[k] = NULL;
-		my_echo.args[k] = NULL;
+
 	}
 	
 }
@@ -234,7 +142,7 @@ void initializeBuiltInTable() {
 	builtInTable[4] = my_alias;
 	builtInTable[5] = my_unalias;
 	builtInTable[6] = my_bye;
-	builtInTable[7] = my_echo;
+
 }
 
 /* Initialize alias table */
@@ -267,14 +175,14 @@ void initializeCurrentArgs() {
 		my_alias.args[i] = NULL;
 		my_unalias.args[i] = NULL;
 		my_bye.args[i] = NULL;
-		my_echo.args[i] = NULL;
+
 	/*	builtInTable[0].args[i] = NULL;
 		builtInTable[1].args[i] = NULL;
 		builtInTable[2].args[i] = NULL;
 		builtInTable[3].args[i] = NULL;
 		builtInTable[4].args[i] = NULL;
 		builtInTable[5].args[i] = NULL;
-		builtInTable[7].args[i] = NULL;*/
+*/
 	}
 
 }
@@ -345,23 +253,14 @@ void do_it(int builtin){
         case 5:
         	unaliasFunction();
             break;
-		case 7:
-        printf("setenv");
-            break;
 	}
-	char* argv = "ARGUMENT";
 
-  /* if(execl("/bin/echo", "hello", NULL) != -1)
-    	printf("success\n\n");
-    else
-    	printf("2\n\n");
-*/
 }
 /* returns the amount of arguments in line after 1st token */
 int commandArgsLength(int cmd) {
 	int i = 0;
  	while(builtInTable[cmd].args[i] != NULL) {
-		//printf("%s\n",builtInTable[cmd].args[i]);
+		printf("command args - %s\n",builtInTable[cmd].args[i]);
 		++i;
 	}
 	return i;
@@ -526,40 +425,65 @@ void printenvFunction() {
 }
 
 int aliasFunction() {
+	/* To do - 
+		1. alias d a, alias -> Alias name already exists 
+	*/
+	char * name;
+	char * word; 
 	int cmd = 4;
 	int alias_argLength = commandArgsLength(cmd);
 
-	char * name = builtInTable[4].args[0];
-	char * word = builtInTable[4].args[1];
-	checkVariable(name);
-	
-	if(name != NULL && word != NULL) {
-		int i;
-
-		/*Checks to see if the alias name already exists*/
-		for(i = 0; i < MAX_ALIAS; i++) {
-			if(aliasTable[i].used == 1) {
-				if(strcmp(aliasTable[i].aliasName, name) == 0) {
-					printf("Alias name already exists.\n");
-					return FALSE;
-				}
-			}
-		}
-		/*Attempts to add the alias to the table*/
-		for(i = 0; i < MAX_ALIAS; i++) {
-			if(aliasTable[i].used == 0) {
-				aliasTable[i].aliasName = name;
-				aliasTable[i].aliasContent = word;
-				aliasTable[i].used = 1;
-				return TRUE;
-			}
-		}
-		printf("Unable to add alias.\n");
+	// if user types alias, no arguments exist 
+	if(alias_argLength == 0){
+		printf("Args length == 0\n");
+		printaliasFunction();
 		return FALSE;
 	}
-	/*P*/ 
-	else if(name == NULL && word == NULL) printaliasFunction();
-	return FALSE;
+	else if(alias_argLength == 1){
+		printf("Error - Formatting : alias variable name\n");
+	}
+
+	else if(alias_argLength == 2){
+		name = builtInTable[4].args[0];
+		word = builtInTable[4].args[1];
+
+		// TO DO - HALF WORKING
+		checkVariable(name);
+		
+		if(name != NULL && word != NULL) {
+				int i;
+
+				/*Checks to see if the alias name already exists*/
+				for(i = 0; i < MAX_ALIAS; i++) {
+					if(aliasTable[i].used == 1) {
+						if(strcmp(aliasTable[i].aliasName, name) == 0) {
+							commandArgsLength(cmd);
+							printf("Alias name already exists.\n");
+							return FALSE;
+						}
+					}
+				}
+				/*Attempts to add the alias to the table*/
+				for(i = 0; i < MAX_ALIAS; i++) {
+					if(aliasTable[i].used == 0) {
+						aliasTable[i].aliasName = name;
+						aliasTable[i].aliasContent = word;
+						aliasTable[i].used = 1;
+
+						// initialize currentArgs[]
+						// initializeCurrentArgs();
+						// rest name & word
+						// name = NULL;
+						// word = NULL;
+
+						return TRUE;
+					}
+				}
+				printf("Unable to add alias.\n");
+				return FALSE;
+		}
+	}
+
 }
 
 int unaliasFunction() {
@@ -572,58 +496,60 @@ int unaliasFunction() {
 					aliasTable[i].aliasName = NULL;
 					aliasTable[i].aliasContent = NULL;
 					aliasTable[i].used = 0;
-					return 0;
+					return TRUE;
 				}
 			}
 		}
 		printf("Unable to remove alias.\n");
-		return -1;
+		return FALSE;
 	}
-	return -1;
+	return FALSE;
 }
 
 void printaliasFunction() {
 	int i = 0;
-	for(i; i < MAX_ALIAS; i++)
+	for(i; i < MAX_ALIAS; i++){
 		if(aliasTable[i].used == 1)
 			printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
+	}
+
 }
 
+/* TODO - alias fdsa**(), because scanner doesn't take in **(), it just makes alias fdsa */
 int checkVariable(char* c) {
 	int i = 0, length = strlen(c);
-	int flag = FALSE;
-	char firstToken;
+	int firstToken = 0, flag = FALSE;
 	
 	for(i; i < length; ++i) {
-		if(i == 0){
-			firstToken = *c;
+		// first Token
+		if(i == 0) {
+		
+			firstToken = (int)*c;
+
+			 // printf("firstToken %d\n", firstToken);
+
+			if( !((firstToken >= 65 && firstToken <= 90) || (firstToken >= 97 && firstToken <= 122)) ){
+				// [A-Za-z] = Ascii table 65 - 90, 97- 122
+				printf("Error - 1st token doesn't start with [a-zA-Z] - %d\n", firstToken);
+				return FALSE;
+			}
+		}	
+		
+		// traverse through the rest of the tokens
+		else {
+			if( !( (*c >= 48 && *c<= 57) || ( *c >= 65 && *c <= 90 ) || (*c >= 97 && *c <= 122) || (*c == 95) ) ){
+			// [A-Za-z] = Ascii table 65 - 90, 97- 122, [_] = 95
+			printf("%d - Error - variable cannot have special characters\n", (int)*c);
+			return FALSE;
+			}
 		}
-		if( 0 <= firstToken <= 64 || 91 <= firstToken <= 94 || 122 <= firstToken <= 127){
-			printf("first token doesn't start with a-Z");
-		}
-		//printf("%c", *c++);
+
+		// printf("%d - %c\n", (int)*c, *c);
+		++c;
+		
 	}
-	/*if((char)0 - 64 || (char)91  94 || (char)122 - 127)
-		false;
-
-		if(firstToken)
-			letter
-			return true;
-
-			aa _ 9 2008
+	// printf("variable");
+	return TRUE;
 	
-
-
-	for(i; i < 91; i++) {
-		if(c == (char)i)
-			return TRUE;
-	}
-	i = 95
-	for(i; i < 122; i++) {
-		if(c == (char)i)
-			return TRUE;
-	}
-	return -FALSE; */
-
-	/* CAN HAVE - 65 - 90, 95 - 122 */
+	
 }
