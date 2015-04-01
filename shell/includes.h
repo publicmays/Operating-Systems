@@ -107,6 +107,7 @@ void do_it(int builtin);
 
 /* do_it(int) */
 void cdFunction();
+void getCurrentDirectory();
 int setenvFunction();
 int unsetenvFunction();
 void printenvFunction();
@@ -114,12 +115,10 @@ void printaliasFunction();
 int aliasFunction();
 int unaliasFunction();
 
+int checkVariable(char* c);
 int commandArgsLength(int cmd);
 void understand_errors();
 void init_scanner_and_parse();
-
-
-void getCurrentDirectory();
 
 char* findWhich();
 
@@ -184,8 +183,8 @@ void processCommand() {
 		printf("%s\n",builtInTable[3].args[i]);
 		++i;
 	}*/
+
 	int builtin = isBuiltInCommand();
-	
 	if(builtin != -1) {
 
 		do_it(builtin);
@@ -261,21 +260,21 @@ void initializeCurrentArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
 		currentArgs[i] = NULL;
-		/*my_setenv.args[i] = NULL;
+		my_setenv.args[i] = NULL;
 		my_printenv.args[i] = NULL;
 		my_unsetenv.args[i] = NULL;
 		my_cd.args[i] = NULL;
 		my_alias.args[i] = NULL;
 		my_unalias.args[i] = NULL;
 		my_bye.args[i] = NULL;
-		my_echo.args[i] = NULL;*/
-		builtInTable[0].args[i] = NULL;
+		my_echo.args[i] = NULL;
+	/*	builtInTable[0].args[i] = NULL;
 		builtInTable[1].args[i] = NULL;
 		builtInTable[2].args[i] = NULL;
 		builtInTable[3].args[i] = NULL;
 		builtInTable[4].args[i] = NULL;
 		builtInTable[5].args[i] = NULL;
-		builtInTable[7].args[i] = NULL;
+		builtInTable[7].args[i] = NULL;*/
 	}
 
 }
@@ -310,10 +309,8 @@ int isBuiltInCommand() {
 			break;
 		}
 	}
-
 	return index;
 }
-
 
 void getCurrentDirectory(){
 	char *cwd;
@@ -338,7 +335,6 @@ void do_it(int builtin){
             break;
         case 2:
         	unsetenvFunction();
-        	// unsetenv();
             break;
         case 3:		
         	cdFunction();
@@ -365,7 +361,7 @@ void do_it(int builtin){
 int commandArgsLength(int cmd) {
 	int i = 0;
  	while(builtInTable[cmd].args[i] != NULL) {
-		printf("%s\n",builtInTable[cmd].args[i]);
+		//printf("%s\n",builtInTable[cmd].args[i]);
 		++i;
 	}
 	return i;
@@ -374,7 +370,6 @@ void cdFunction() {
 	/* Debug getCurrentDirectory(); */
 	int cdIndex = 3;
 	int cdArgLength = commandArgsLength(cdIndex);	// #define CD 3
-
 
 	/* "path", 'path' - 3 tokens */
 	if(cdArgLength <= 3){
@@ -504,10 +499,8 @@ int setenvFunction() {
 
 int unsetenvFunction() {
 	char * variable = builtInTable[2].args[0];
-
 	if(variable != NULL) {
 		int i;
-
 		/*Attempts to remove variable from the table*/
 		for(i = 0; i < MAX_VARIABLES; i++) {
 			if(variableTable[i].used == 1) {
@@ -526,7 +519,6 @@ int unsetenvFunction() {
 
 void printenvFunction() {
 	int i = 0;
-
 	/*Print variable table*/
 	for(i; i < MAX_VARIABLES; i++)
 		if(variableTable[i].used == 1)
@@ -534,9 +526,13 @@ void printenvFunction() {
 }
 
 int aliasFunction() {
+	int cmd = 4;
+	int alias_argLength = commandArgsLength(cmd);
+
 	char * name = builtInTable[4].args[0];
 	char * word = builtInTable[4].args[1];
-
+	checkVariable(name);
+	
 	if(name != NULL && word != NULL) {
 		int i;
 
@@ -545,32 +541,29 @@ int aliasFunction() {
 			if(aliasTable[i].used == 1) {
 				if(strcmp(aliasTable[i].aliasName, name) == 0) {
 					printf("Alias name already exists.\n");
-					return -1;
+					return FALSE;
 				}
 			}
 		}
-
 		/*Attempts to add the alias to the table*/
 		for(i = 0; i < MAX_ALIAS; i++) {
 			if(aliasTable[i].used == 0) {
 				aliasTable[i].aliasName = name;
 				aliasTable[i].aliasContent = word;
 				aliasTable[i].used = 1;
-				return 0;
+				return TRUE;
 			}
 		}
 		printf("Unable to add alias.\n");
-		return -1;
+		return FALSE;
 	}
-
 	/*P*/ 
 	else if(name == NULL && word == NULL) printaliasFunction();
-	return -1;
+	return FALSE;
 }
 
-int  unaliasFunction() {
+int unaliasFunction() {
 	char * name = builtInTable[5].args[0];
-
 	if(name != NULL) {
 		int i;
 		for(i = 0; i < MAX_ALIAS; i++) {
@@ -596,12 +589,20 @@ void printaliasFunction() {
 			printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
 }
 
-/* make prototype */
-
 int checkVariable(char* c) {
-	char firstToken = -1;
-	int i = 65;
+	int i = 0, length = strlen(c);
 	int flag = FALSE;
+	char firstToken;
+	
+	for(i; i < length; ++i) {
+		if(i == 0){
+			firstToken = *c;
+		}
+		if( 0 <= firstToken <= 64 || 91 <= firstToken <= 94 || 122 <= firstToken <= 127){
+			printf("first token doesn't start with a-Z");
+		}
+		//printf("%c", *c++);
+	}
 	/*if((char)0 - 64 || (char)91  94 || (char)122 - 127)
 		false;
 
@@ -610,7 +611,7 @@ int checkVariable(char* c) {
 			return true;
 
 			aa _ 9 2008
-	*/
+	
 
 
 	for(i; i < 91; i++) {
@@ -622,7 +623,7 @@ int checkVariable(char* c) {
 		if(c == (char)i)
 			return TRUE;
 	}
-	return -FALSE;
+	return -FALSE; */
 
 	/* CAN HAVE - 65 - 90, 95 - 122 */
 }
