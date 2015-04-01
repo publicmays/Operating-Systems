@@ -26,7 +26,7 @@
 /* MAX */
 #define MAX_PROMPT_LENGTH	500
 #define MAX_BUILT_IN_COMMANDS 7
-#define MAX_ALIAS 100
+#define MAX_ALIAS 5	// 100
 #define MAX_VARIABLES 100
 #define MAXARGS 300
 #define MAXPATH 50

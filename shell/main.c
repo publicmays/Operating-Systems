@@ -3,6 +3,10 @@
  * File : main.c
  * Version : 1.0
  * Comments : work on cd, alias
+ * Alias
+ * for puposes of debuggin
+ - changed MAXALIAS to 5, change back to 100
+  
 ************************/
 #include "includes.h"
 

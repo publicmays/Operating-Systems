@@ -168,21 +168,23 @@ void initializeCurrentArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
 		currentArgs[i] = NULL;
+		/*
+
 		my_setenv.args[i] = NULL;
 		my_printenv.args[i] = NULL;
 		my_unsetenv.args[i] = NULL;
 		my_cd.args[i] = NULL;
 		my_alias.args[i] = NULL;
 		my_unalias.args[i] = NULL;
-		my_bye.args[i] = NULL;
+		my_bye.args[i] = NULL;*/
 
-	/*	builtInTable[0].args[i] = NULL;
+		builtInTable[0].args[i] = NULL;
 		builtInTable[1].args[i] = NULL;
 		builtInTable[2].args[i] = NULL;
 		builtInTable[3].args[i] = NULL;
 		builtInTable[4].args[i] = NULL;
 		builtInTable[5].args[i] = NULL;
-*/
+
 	}
 
 }
@@ -260,7 +262,7 @@ void do_it(int builtin){
 int commandArgsLength(int cmd) {
 	int i = 0;
  	while(builtInTable[cmd].args[i] != NULL) {
-		printf("command args - %s\n",builtInTable[cmd].args[i]);
+		// printf("command args - %s\n",builtInTable[cmd].args[i]);
 		++i;
 	}
 	return i;
@@ -426,18 +428,21 @@ void printenvFunction() {
 
 int aliasFunction() {
 	/* To do - 
-		1. alias d a, alias -> Alias name already exists 
+		1. h = a
+		   2 = a
+		   ff = b
 	*/
 	char * name;
 	char * word; 
 	int cmd = 4;
+	int flag = FALSE;
 	int alias_argLength = commandArgsLength(cmd);
-
+	// printf("Start of alias - argLength : %d\n", alias_argLength);
 	// if user types alias, no arguments exist 
 	if(alias_argLength == 0){
-		printf("Args length == 0\n");
+		// printf("Args length == 0\n");
 		printaliasFunction();
-		return FALSE;
+	//	flag = FALSE;
 	}
 	else if(alias_argLength == 1){
 		printf("Error - Formatting : alias variable name\n");
@@ -448,8 +453,9 @@ int aliasFunction() {
 		word = builtInTable[4].args[1];
 
 		// TO DO - HALF WORKING
-		checkVariable(name);
-		
+		if(checkVariable(name) == FALSE){
+			return FALSE;
+		}
 		if(name != NULL && word != NULL) {
 				int i;
 
@@ -459,12 +465,14 @@ int aliasFunction() {
 						if(strcmp(aliasTable[i].aliasName, name) == 0) {
 							commandArgsLength(cmd);
 							printf("Alias name already exists.\n");
-							return FALSE;
+							flag = FALSE;
 						}
 					}
 				}
 				/*Attempts to add the alias to the table*/
 				for(i = 0; i < MAX_ALIAS; i++) {
+					/* This is where the error is, setting everything 
+					 in the alias table to 1 */
 					if(aliasTable[i].used == 0) {
 						aliasTable[i].aliasName = name;
 						aliasTable[i].aliasContent = word;
@@ -476,14 +484,23 @@ int aliasFunction() {
 						// name = NULL;
 						// word = NULL;
 
-						return TRUE;
+						flag = TRUE;
+						return flag;
+						// break;
 					}
 				}
-				printf("Unable to add alias.\n");
-				return FALSE;
 		}
 	}
-
+	else {
+		printf("Error - Too  many arguments for alias.\n");
+	}
+	/*if(flag == FALSE){
+		printf("Error - Unable to add alias.\n");
+	}*/
+	// initializeCurrentArgs();
+	// alias_argLength = commandArgsLength(cmd);
+	// printf("End of alias - argLength : %d\n", alias_argLength);
+	return flag;
 }
 
 int unaliasFunction() {
@@ -509,8 +526,10 @@ int unaliasFunction() {
 void printaliasFunction() {
 	int i = 0;
 	for(i; i < MAX_ALIAS; i++){
-		if(aliasTable[i].used == 1)
+		if(aliasTable[i].used == 1){
+			//printf("%d - Used %d", i, aliasTable[i].used);
 			printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
+		}
 	}
 
 }
