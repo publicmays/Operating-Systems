@@ -43,9 +43,10 @@ command:
 	;
 
 word_case: WORD {
-			// printf("Word\n");
+			// printf("word - ");
+			//printf("%s\n", yylval.string);
 			entireLine[wordCount] = $1;
-			
+			//printf("%d - %s\n",wordCount, entireLine[wordCount]);
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
 			}
@@ -53,7 +54,7 @@ word_case: WORD {
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
 
 				currentArgs[wordCount-2] = $1;
-
+				
 			// this prints incorrectly
 			// 	 printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
 			
@@ -61,7 +62,8 @@ word_case: WORD {
 	};
 
 quoted_case: QUOTED {
-			printf("Inside quoted");
+			printf("%s\n", yylval.string);
+			printf("Inside quoted\n");
 	};
 
 open_brace_case: OPEN_BRACE;

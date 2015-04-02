@@ -5,8 +5,7 @@
  * Comments : 
  * is entireWordLength going to allow | / : > < as entries
  * clean up firstWord and currentArgs
- * alias a cd, alias a bye, a = cd, cd = bye, call cd to bye
- * need alias to replace it
+ * [/a-zA-Z0-9\'\_\.]+[a-zA-Z0-9\_\-\']*
 ************************/
 #include "includes.h"
 
@@ -33,7 +32,7 @@ int main() {
 				printf("Error - You got us. There was an error.\n");
 				break;
 			case OK:
-				
+
 				processCommand();
 				break;
 		}

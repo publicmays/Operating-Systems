@@ -139,7 +139,7 @@ void processAlias() {
 				entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
 			}
 		}
-		printLineLength();	
+		//printLineLength();	
 	}
 }
 
@@ -207,7 +207,50 @@ void getCurrentDirectory(){
 }
 /* Handles commands except built-in */
 void execute_it(){
+
+	// check command accessability & executability
+	/*if(!Executable()) { }
 	
+	// check io file existance in case of io redirection
+	if(check_in_file() == SYSERR){ }
+	if(check_out_file() == SYSERR) { }
+
+	// build up the pipeline
+	for(c = 0; c < currcmd; ++c) {
+		// prep args
+		if( ... ) {argv }
+		else { }
+		switch(pid == fork() ) { // fork process returns twice 
+			case 0 : 
+			switch(whichCommand(c)) {
+				case FIRST:
+					if(close(1) == SYSCALLER) {
+
+					}
+					if(dup(comtab[c].outfd)!= 1) {...}
+					if(close(comtab[c+1].infd) == SYSCALLER) {...}
+					in_redir();
+					break;
+				case LAST:
+					if(close(0) == SYSCALLER) {
+
+					}
+					if(dup(comtab[c].infd) != 0) { ... }
+					out_redir();
+					break;
+				case THE_ONLY_ONE:
+					in_redir();
+					out_redir();
+					break;
+				default:
+					if(dup2(comtab[c].outfd, 1) == SYSCALLER) {...}
+					if(dup2(comtab[c].infd, 0) == SYSCALLER) {...}
+					if(close(comtab[c+1].infd) == SYSCALLER) {...}
+					break;
+			}
+		}
+	}
+*/
 }
 /* Handles all built in commands */
 void do_it(int builtin){

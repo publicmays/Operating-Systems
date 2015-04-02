@@ -22,13 +22,14 @@
 
 [<>|\(\)&;] 								{ return yytext[0]; }
 \n | ";"									{ wordCount = 0; return END;};
-"\""[^\n]*"\""								{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
+[\"]+[^ \"\n]*\"							{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
 											yylval.string[0] = '\0'; yylval.string++; return WORD; } 
-[\'][^\n]*[\']*								{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
-											yylval.string[0] = '\0'; yylval.string++; return WORD; }											
-[/a-zA-Z0-9\'\_\.]+[a-zA-Z0-9\_\-\']*				{yylval.string = strdup(yytext);return WORD;};
 
-[ \t\r]									/* ignore whitespace */
+[\'][^\'\n]*[\']							{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
+											yylval.string[0] = '\0'; yylval.string++; return WORD; }											
+[^ t\r\n;]*									{yylval.string = strdup(yytext);return WORD;};
+
+[ \t\r\n]									/* ignore whitespace */
 .											/* everything else = error */
 
 
