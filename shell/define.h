@@ -32,6 +32,11 @@
 #define MAXARGS 			300
 #define MAXPATH 			100
 
+/* Pipelining */
+#define STD_IN 0
+#define STD_OUT 1
+
+
 /* Data Structures */
 typedef struct {
 	char *commandName;
@@ -77,6 +82,8 @@ void processAlias();
 int isAlias(char* c);	// inside process alias
 int isBuiltInCommand();
 void do_it(int builtin);
+
+int executable(char *);
 void execute_it();
 
 
@@ -95,4 +102,7 @@ int builtInCommandArgsLength(int cmd);
 int entireLineLength();
 void understand_errors();
 void init_scanner_and_parse();
+
+/* Pipelining */
+void strrev(char *p);
 

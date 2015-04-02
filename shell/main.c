@@ -5,7 +5,7 @@
  * Comments : 
  * is entireWordLength going to allow | / : > < as entries
  * clean up firstWord and currentArgs
- * [/a-zA-Z0-9\'\_\.]+[a-zA-Z0-9\_\-\']*
+ * recursive alias 
 ************************/
 #include "includes.h"
 

@@ -1,4 +1,5 @@
 #include "define.h"
+#include <sys/types.h>
 /******************************* Globals *******************************/
 /* Prompt */
 static int globalReadOffset;
@@ -30,6 +31,11 @@ static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
 static variable variableTable[MAX_VARIABLES];
 
+/* Pipelining */
+pid_t pid[3];
+int ab[2], bc[2], ca[2];
+
+
 /********* Functions *********/
 
 // TO DO
@@ -53,6 +59,9 @@ void shell_init() {
 	strcpy(home, getenv("HOME"));
 	cmd = -1;
 
+	pipe(ab);
+	pipe(bc);
+	pipe(ca);
 }
 
 int getCommand() {
@@ -109,7 +118,7 @@ void processCommand() {
 		
 	}
 	else {
-		execute_it();
+		// execute_it();
 	}
 
 	/* Debug - see currentArgs[] in line
@@ -125,7 +134,11 @@ void processCommand() {
 		}
 	*/
 }
+void checkForMoreAliases() {
+	// go through each line in entireLine
+	// call process alias if you find another alias
 
+}
 void processAlias() {
 	int aliasIndexFound = -1, i;
 	// if entireLine[0] != my_alias.commandName
@@ -141,6 +154,7 @@ void processAlias() {
 		}
 		//printLineLength();	
 	}
+	checkForMoreAliases();
 }
 
 int isAlias(char* c) {
@@ -205,8 +219,143 @@ void getCurrentDirectory(){
           (void)printf("%s\n", cwd);
           free(cwd); /* free memory allocated by getcwd() */
 }
+void strrev(char *p)
+{
+  char *q = p;
+  while(q && *q) ++q;
+  for(--q; p < q; ++p, --q)
+    *p = *p ^ *q,
+    *q = *p ^ *q,
+    *p = *p ^ *q;
+}
+
 /* Handles commands except built-in */
 void execute_it(){
+
+	printf("Not built in, attempting to execute.\n");
+
+	/*char* executableLine[entireLineLength() - 1];
+
+	pid_t pids[MAX_COMMANDS];
+
+	int i = 0;
+	for(i; i < entireLineLength() -1; i++) {
+		executableLine[i] = entireLine[i+1];
+	}
+	fork();
+	execvp(entireLine[0], executableLine);*/
+
+	pid[0] = fork();
+	int i = 0;
+	if(pid[0] == 0) {
+		char buffer[100];
+
+	    fgets(buffer, sizeof(buffer), stdin);
+	    int len = strlen(buffer);
+
+	    if (write(ab[1], buffer, len) != len)
+	        printf("Failed to write to children");
+	    if (read(ca[0], buffer, len) != len)
+	        printf("Failed to read from children");
+	    
+	    printf("%.*s", len, buffer);
+        i = 0;
+        for(i; i<2; i++)
+        {close(ab[i]); close(bc[i]); close(ca[i]); }
+
+        //dup2(STDOUT_FILENO, ab[1]);
+        //printf("%s", str2);
+        // quit so your child doesn't end up in the main program
+        exit(0);
+	}
+	pid[1]=fork();
+
+	if(pid[1] == 0)
+	{
+	        
+	        // Process B reads from process A
+	        dup2(ab[0], STDIN_FILENO);
+	        // Process B writes to process C
+	        dup2(bc[1], STDOUT_FILENO);
+	        
+	        for(i = 0; i<2; i++)
+	        { close(ab[i]); close(bc[i]); close(ca[i]); }
+
+	        char str[100];
+	        scanf ("%[^\n]%*c", str);
+	        strrev(str);
+	        printf("%s\n", str);
+
+	        exit(0);
+	}
+
+	pid[2]=fork();
+	if(pid[2] == 0)
+	{
+	        
+	        // Process C reads from process B
+	        dup2(bc[0], STDIN_FILENO);
+	        // Process C writes to process A
+	        dup2(ca[1], STDOUT_FILENO);
+	        for(i=0; i<2; i++)
+	        { close(ab[i]); close(bc[i]); close(ca[i]); }
+	    	char str[100];        
+	        scanf ("%[^\n]%*c", str);
+	        i = 0;
+			while (str[i]){
+			    
+			    str[i] = toupper(str[i]);
+			    i++;
+			}
+
+	        
+	        printf("%s\n", str);
+	        
+	        exit(0);
+	}
+
+	i = 0;
+	for(i=0; i<2; i++)
+	{ close(ab[i]); close(bc[i]); close(ca[i]); }
+
+	
+    wait();
+    wait();
+    wait();
+
+
+	i = 0;
+	/*
+	switch(pids[i] = fork()) {
+		case -1:
+			printf("Failed to fork");
+			break;
+		case 0:
+			if(lastPipe >= 0) {
+				//Pipe to read from
+				dup2(lastPipe, STDIN_FILE_ID);
+				close(lastPip);
+			}
+			if(currPipe[WRITE_END] >= 0) {
+				//Pipe to right to
+				dup2(currPipe[WRITE_END], STDOUT_FILE_ID);
+				close(currPipe[WRITE_END]);
+				close(currPipe[READ_END]);
+			}
+			executeCommand(command);
+			exit(0);
+			break;
+		default:
+			if(currPipe[WRITE_END] >= 0)
+				close(currPipe[WRITE_END]);
+			if(lastPipe >= 0)
+				close(lastPipe);
+
+			lastPipe = currPipe[READ_END];
+			currPipe[READ_END] = -1;
+			currPipe[WRITE_END] = -1;
+			break;
+	}*/
 
 	// check command accessability & executability
 	/*if(!Executable()) { }

@@ -44,9 +44,14 @@ command:
 
 word_case: WORD {
 			// printf("word - ");
-			//printf("%s\n", yylval.string);
+			// printf("j -%c\n", yylval.string[0]);
+			// printf("")
+			/*
+			if(yylval.string[0] == " \""){
+
+			}*/
 			entireLine[wordCount] = $1;
-			//printf("%d - %s\n",wordCount, entireLine[wordCount]);
+			// printf("%d - %s\n",wordCount, entireLine[wordCount]);
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
 			}
@@ -62,6 +67,7 @@ word_case: WORD {
 	};
 
 quoted_case: QUOTED {
+			yyparse();
 			printf("%s\n", yylval.string);
 			printf("Inside quoted\n");
 	};
