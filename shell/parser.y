@@ -14,6 +14,7 @@ extern int getWordCount();
 extern int wordCount;
 extern char* firstWord;
 extern char* currentArgs[MAXARGS];
+extern char* entireLine[MAXARGS];
 
 %}
 
@@ -42,7 +43,9 @@ command:
 	;
 
 word_case: WORD {
-
+			// printf("Word\n");
+			entireLine[wordCount] = $1;
+			
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
 			}
@@ -50,7 +53,9 @@ word_case: WORD {
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
 
 				currentArgs[wordCount-2] = $1;
-				 // printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
+
+			// this prints incorrectly
+			// 	 printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
 			
 			}
 	};

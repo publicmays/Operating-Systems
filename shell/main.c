@@ -2,11 +2,13 @@
  * Name : Kathleen Lew 
  * File : main.c
  * Version : 1.0
- * Comments : work on cd, alias
- * Alias
- * for puposes of debuggin
- - changed MAXALIAS to 5, change back to 100
-  
+ * Comments : 
+ * is entireWordLength going to allow | / : > < as entries
+ * test isAlias and processAlias
+ * just set entireLine = isAlias & processAlias
+ * print out entireLine with new alias stuff
+ * builtInCommand needs to be reworked
+ * need to set everything from entireLine to firstWord & currentArgs
 ************************/
 #include "includes.h"
 
@@ -30,7 +32,7 @@ int main() {
 				break;
 			case ERRORS:
 				//recover_from_errors();
-				printf("You got us. There was an error.\n");
+				printf("Error - You got us. There was an error.\n");
 				break;
 			case OK:
 				processCommand();

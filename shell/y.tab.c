@@ -79,9 +79,10 @@ extern int getWordCount();
 extern int wordCount;
 extern char* firstWord;
 extern char* currentArgs[MAXARGS];
+extern char* entireLine[MAXARGS];
 
 
-#line 85 "y.tab.c" /* yacc.c:339  */
+#line 86 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -137,12 +138,12 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 20 "parser.y" /* yacc.c:355  */
+#line 21 "parser.y" /* yacc.c:355  */
 
 	int my_number;
 	char* string;
 
-#line 146 "y.tab.c" /* yacc.c:355  */
+#line 147 "y.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -157,7 +158,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 161 "y.tab.c" /* yacc.c:358  */
+#line 162 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -455,8 +456,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    36,    36,    37,    41,    41,    41,    41,    44,    58,
-      62,    63
+       0,    37,    37,    38,    42,    42,    42,    42,    45,    63,
+      67,    68
 };
 #endif
 
@@ -1228,9 +1229,11 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 44 "parser.y" /* yacc.c:1646  */
+#line 45 "parser.y" /* yacc.c:1646  */
     {
-
+			// printf("Word\n");
+			entireLine[wordCount] = (yyvsp[0].string);
+			
 			if(wordCount++ == 0 ) {
 				firstWord = (yyvsp[0].string);
 			}
@@ -1238,23 +1241,25 @@ yyreduce:
 				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
 
 				currentArgs[wordCount-2] = (yyvsp[0].string);
-				 // printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
+
+			// this prints incorrectly
+			// 	 printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
 			
 			}
 	}
-#line 1246 "y.tab.c" /* yacc.c:1646  */
+#line 1251 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 58 "parser.y" /* yacc.c:1646  */
+#line 63 "parser.y" /* yacc.c:1646  */
     {
 			printf("Inside quoted");
 	}
-#line 1254 "y.tab.c" /* yacc.c:1646  */
+#line 1259 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1258 "y.tab.c" /* yacc.c:1646  */
+#line 1263 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1482,7 +1487,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 65 "parser.y" /* yacc.c:1906  */
+#line 70 "parser.y" /* yacc.c:1906  */
 
 
 

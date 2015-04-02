@@ -3,12 +3,13 @@
 /* Prompt */
 static int globalReadOffset;
 static char promptResponse[500];
-
 int wordCount = 0;
 char* firstWord;
+
 /* all args after 1st word - line : cmd currentArgs[] */
 char* currentArgs[MAXARGS];
-
+/* User inputs entire line array */
+char* entireLine[MAXARGS];
 char* path;
 char* home;
 int cmd;
@@ -24,19 +25,20 @@ static command my_bye;
 static char* whichLocation = NULL;
 
 /* Externs in main.c */
+static command commandTable[MAX_COMMANDS];
 static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
 static variable variableTable[MAX_VARIABLES];
 
-
-
 /********* Functions *********/
 
+// TO DO
 void shell_init() {
+	// prevent Ctrl + Z, Ctrl + C
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
-
+	initializeEntireLine();
 	initializeBuiltInCommands();
 	initializeBuiltInTable();
 	initializeAliasTable();
@@ -49,7 +51,6 @@ void shell_init() {
 	home = allocate(char);
 	strcpy(path, getenv("PATH"));
 	strcpy(home, getenv("HOME"));
-
 	cmd = -1;
 
 }
@@ -78,23 +79,23 @@ int getCommand() {
 			return BYE;
 		}
 		else {
-
 			return OK;
 		}
 	}
 }
 
+/* Built in, 
+ * nonbuilt in - execute 
+ */
 void processCommand() {
 	/* Debug - see currentArgs[] in line
 	 	int i = 0;
-	 	while(builtInTable[3].args[i] != NULL) {
-		printf("%s\n",builtInTable[3].args[i]);
-		++i;
-	}*/
-
+	 		while(builtInTable[3].args[i] != NULL) {
+			printf("%s\n",builtInTable[3].args[i]);
+			++i;
+		}*/
 	int builtin = isBuiltInCommand();
 	if(builtin != -1) {
-
 		do_it(builtin);
 	}
 	/*
@@ -102,9 +103,39 @@ void processCommand() {
 		execute_it();
 	}*/
 }
+void processAlias() {
+	int aliasIndexFound = -1;
+	int i;
+	for(i = 0; i < wordCount-1; ++i) {
+		aliasIndexFound = isAlias(entireLine[i]);
+		if(aliasIndexFound <= 0){
+			entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+		}
+	}
+}
+
+int isAlias(char* c) {
+	int i;
+	for(i = 0; i < MAX_ALIAS; i++) {
+		if(aliasTable[i].used == 1) {
+			if(strcmp(aliasTable[i].aliasName, c) == 0) {
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+
+
 void understand_errors() {}
 void init_scanner_and_parse() {}
 
+void initializeEntireLine() {
+	int i = 0;
+	for(i; i < MAXARGS; ++i) {
+		entireLine[i] = NULL;
+	}
+}
 /* Initializing all built in commands */
 void initializeBuiltInCommands() {
 	int k = 0;
@@ -200,16 +231,14 @@ void printPrompt() {
 
 /* Returns index of built in command in builtInTable, -1 !(builtIn command)*/
 int isBuiltInCommand() {
-
 	int index = -1, j, i;
-
 	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
-	if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
-			// first word is built in command
-			/* set command arguments */
-			//commandTemp = builtInTable[j];
-
-			/*Extra blank argument produced with -1, changed to -2*/
+		// first word is built in command
+		if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
+			
+			/* set command arguments 
+			 * Note - Extra blank argument produced with -1, 
+			 * changed to -2 */
 			for(i = 0; i < wordCount-2; ++i) {
 				builtInTable[j].args[i] = currentArgs[i];
 				// 	THIS IS THE ONE THAT PRINTS CORECTLY NOT PARSER.Y
@@ -268,42 +297,41 @@ int commandArgsLength(int cmd) {
 	return i;
 }
 void cdFunction() {
-	/* Debug getCurrentDirectory(); */
+	// Debug getCurrentDirectory();
 	int cdIndex = 3;
 	int cdArgLength = commandArgsLength(cdIndex);	// #define CD 3
 
 	/* "path", 'path' - 3 tokens */
 	if(cdArgLength <= 3){
-		// TODO - NEED TO IMPLEMENTE CD ~ !!!!!!!
+		// TO DO - NEED TO IMPLEMENTE CD ~ !!!!!!!
 
-		/* need to implement a for loop for cd
-		*/ 
 		//printf("%d\n", cdArgLength);
-		//printf("%s\n", builtInTable[cdIndex].args[0]);
+	
 		if(cdArgLength == 0){
 				// || strcmp(builtInTable[3].args[0], "~")
-				printf("hello");
+				// printf("cd ArgLength == 0");
 				chdir(home);
 				getCurrentDirectory();
 		}
 		/* cd path argLength = 1*/
-		else if(chdir(builtInTable[cdIndex].args[0]) == 0) {
-				// sucessfull
+		if(cdArgLength == 1) {
+			if(chdir(builtInTable[cdIndex].args[0]) == 0) {
+					// sucessfull
+					// printf("args[0] - %s", builtInTable[cdIndex].args[0]);
+					getCurrentDirectory();
+			}
+			else {
+				// printf("args[0] - %s", builtInTable[cdIndex].args[0]);
+				printf("Error - cd path was not successful.\n");
+			}
+		}
 
-				// getCurrentDirectory();
-		}
-	
-		else {
-			// go to
-			printf("cd - path was not successful.\n");
-		}
-			// need to check if it's a correct path
 	}
 	
 	else {
-		printf("%d\n", cdArgLength);
-		printf("%s\n", builtInTable[cdIndex].args[0]);
-		printf("more than 1 argument");
+		// printf("%d\n", cdArgLength);
+		//printf("%s\n", builtInTable[cdIndex].args[0]);
+		printf("Error - cd does not have more than 1 argument\n");
 	}
 
 }
@@ -365,7 +393,7 @@ char* findWhich()
 int setenvFunction() {
 	char * variable = builtInTable[0].args[0];
 	char * word = builtInTable[0].args[1];
-	int cmd = 0;
+	cmd = 0;
 	int setenv_argLength = commandArgsLength(cmd);
 	// printf("variable:%d\n", setenv_argLength);
 	//printf("word:%s\n", word);
@@ -427,14 +455,9 @@ void printenvFunction() {
 }
 
 int aliasFunction() {
-	/* To do - 
-		1. h = a
-		   2 = a
-		   ff = b
-	*/
 	char * name;
 	char * word; 
-	int cmd = 4;
+	cmd = 4;
 	int flag = FALSE;
 	int alias_argLength = commandArgsLength(cmd);
 	// printf("Start of alias - argLength : %d\n", alias_argLength);
@@ -494,10 +517,7 @@ int aliasFunction() {
 	else {
 		printf("Error - Too  many arguments for alias.\n");
 	}
-	/*if(flag == FALSE){
-		printf("Error - Unable to add alias.\n");
-	}*/
-	// initializeCurrentArgs();
+
 	// alias_argLength = commandArgsLength(cmd);
 	// printf("End of alias - argLength : %d\n", alias_argLength);
 	return flag;
@@ -549,7 +569,7 @@ int checkVariable(char* c) {
 
 			if( !((firstToken >= 65 && firstToken <= 90) || (firstToken >= 97 && firstToken <= 122)) ){
 				// [A-Za-z] = Ascii table 65 - 90, 97- 122
-				printf("Error - 1st token doesn't start with [a-zA-Z] - %d\n", firstToken);
+				printf("Error - 1st token doesn't start with [a-zA-Z]\n");
 				return FALSE;
 			}
 		}	
