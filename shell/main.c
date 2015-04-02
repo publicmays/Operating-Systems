@@ -4,11 +4,9 @@
  * Version : 1.0
  * Comments : 
  * is entireWordLength going to allow | / : > < as entries
- * test isAlias and processAlias
- * just set entireLine = isAlias & processAlias
- * print out entireLine with new alias stuff
- * builtInCommand needs to be reworked
- * need to set everything from entireLine to firstWord & currentArgs
+ * clean up firstWord and currentArgs
+ * alias a cd, alias a bye, a = cd, cd = bye, call cd to bye
+ * need alias to replace it
 ************************/
 #include "includes.h"
 
@@ -27,6 +25,7 @@ int main() {
 		printPrompt();
 		switch(cmd = getCommand()){
 			case BYE:
+				printf("\nExiting gracefully\n\n");
 				exit(0);
 				break;
 			case ERRORS:
@@ -34,6 +33,7 @@ int main() {
 				printf("Error - You got us. There was an error.\n");
 				break;
 			case OK:
+				
 				processCommand();
 				break;
 		}

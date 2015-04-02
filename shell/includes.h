@@ -64,8 +64,9 @@ int getCommand() {
 	*/
 	/* Reset wordCount back to 0 because newline */
 	wordCount = 0;
-	initializeCurrentArgs();
 	initializeEntireLine();
+	initializeCurrentArgs();
+	
 	/* When you call yyparse
 	 * 1. firstWord is set
 	 * 2. currentArgs[] = the rest of the tokens in the line
@@ -76,10 +77,16 @@ int getCommand() {
 		return ERRORS;
 	}
 	else {
+
+		/* This is only called to handle an alias for bye */
+		processAlias();
+
+		
 		if(strcmp(entireLine[0], builtInTable[6].commandName) == 0){
 			return BYE;
 		}
 		else {
+		// this is working fine - printLineLength();
 			return OK;
 		}
 	}
@@ -89,16 +96,21 @@ int getCommand() {
  * nonbuilt in - execute 
  */
 void processCommand() {
-	processAlias();
+
+	/* fixed - had to add if(strcmp(entireLine[0],my_alias.commandName) != 0) */
+	processAlias(); 
 	
 	int builtin = isBuiltInCommand();
+	
+	// 3 - printf("name - %s\n", builtInTable[4].args[0]);
 	if(builtin != -1) {
+
 		do_it(builtin);
+		
 	}
-	/*
 	else {
 		execute_it();
-	}*/
+	}
 
 	/* Debug - see currentArgs[] in line
 	 	int i = 0;
@@ -116,13 +128,18 @@ void processCommand() {
 
 void processAlias() {
 	int aliasIndexFound = -1, i;
-	for(i = 0; i < entireLineLength(); ++i) {
-		// find index where alias is found
-		aliasIndexFound = isAlias(entireLine[i]);
-		// if index is not -1, replace entireLine[i] with aliasContent
-		if(aliasIndexFound >= 0){
-			entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+	// if entireLine[0] != my_alias.commandName
+	if(strcmp(entireLine[0],my_alias.commandName) != 0) {
+		//printf("%s != ", entireLine[0])
+		for(i = 0; i < entireLineLength(); ++i) {
+			// find index where alias is found
+			aliasIndexFound = isAlias(entireLine[i]);
+			// if index is not -1, replace entireLine[i] with aliasContent
+			if(aliasIndexFound >= 0){
+				entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+			}
 		}
+		printLineLength();	
 	}
 }
 
@@ -143,108 +160,10 @@ int isAlias(char* c) {
 void understand_errors() {}
 void init_scanner_and_parse() {}
 
-void initializeEntireLine() {
-	int i = 0;
-	for(i; i < MAXARGS; ++i) {
-		entireLine[i] = NULL;
-	}
-}
-/* Initializing all built in commands */
-void initializeBuiltInCommands() {
-	int k = 0;
-	/* Static - Only can initialize these variables once */
-	/* commandName */
-	my_setenv.commandName = "setenv";
-	my_printenv.commandName = "printenv";
-	my_unsetenv.commandName = "unsetenv";
-	my_cd.commandName = "cd";
-	my_alias.commandName = "alias";
-	my_unalias.commandName = "unalias";
-	my_bye.commandName = "bye";
-
-	
-	/* args[] */
-	for(k; k < MAXARGS; ++k){
-		my_setenv.args[k] = NULL;
-		my_printenv.args[k] = NULL;
-		my_unsetenv.args[k] = NULL;
-		my_cd.args[k] = NULL;
-		my_alias.args[k] = NULL;
-		my_unalias.args[k] = NULL;
-		my_bye.args[k] = NULL;
-
-	}
-	
-}
-
-/* Initialize built in table */
-void initializeBuiltInTable() {
-	builtInTable[0] = my_setenv;
-	builtInTable[1] = my_printenv;
-	builtInTable[2] = my_unsetenv;
-	builtInTable[3] = my_cd;
-	builtInTable[4] = my_alias;
-	builtInTable[5] = my_unalias;
-	builtInTable[6] = my_bye;
-
-}
-
-/* Initialize alias table */
-void initializeAliasTable() {
-	int i = 0;
-	for(i; i < MAX_ALIAS; ++i) {
-		aliasTable[i].used = 0;
-		aliasTable[i].aliasName = NULL;
-		aliasTable[i].aliasContent = NULL;
-	}
-}
-
-void initializeVariableTable() {
-	int i = 0;
-	for(i; i < MAX_VARIABLES; ++i) {
-		variableTable[i].used = 0;
-		variableTable[i].variable = NULL;
-		variableTable[i].word = NULL;
-	}
-}
-
-void initializeCurrentArgs() {
-	int i = 0;
-	for(i; i < MAXARGS; ++i) {
-		currentArgs[i] = NULL;
-		/*
-
-		my_setenv.args[i] = NULL;
-		my_printenv.args[i] = NULL;
-		my_unsetenv.args[i] = NULL;
-		my_cd.args[i] = NULL;
-		my_alias.args[i] = NULL;
-		my_unalias.args[i] = NULL;
-		my_bye.args[i] = NULL;*/
-
-		builtInTable[0].args[i] = NULL;
-		builtInTable[1].args[i] = NULL;
-		builtInTable[2].args[i] = NULL;
-		builtInTable[3].args[i] = NULL;
-		builtInTable[4].args[i] = NULL;
-		builtInTable[5].args[i] = NULL;
-
-	}
-
-}
-void printPrompt() {
-	int i = 0;
-	for(i; i < MAX_PROMPT_LENGTH; ++i) {
-			promptResponse[i] = '\0';
-	}
-	globalReadOffset = 0;
-	printf("> ");
-	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
-}
-
 /* Returns index of built in command in builtInTable, 
  * Returns -1 if it's not a built-in command */
 int isBuiltInCommand() {
+
 	int index = -1, j, i;
 	int lineArgLength = entireLineLength()-1;
 	if(entireLine[0] != NULL) {
@@ -252,7 +171,7 @@ int isBuiltInCommand() {
 		for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
 			// if first word is built in command, 0 = successful
 			if(strcmp(entireLine[0], builtInTable[j].commandName) == 0) {
-				printf("el[0] = built in\n");
+	
 				/* if there's arguments after entireLine[0] 
 				 * Don't forget to initializeEntireLine() in getCommand 
 				 * Set command arguments 
@@ -260,12 +179,14 @@ int isBuiltInCommand() {
 				if(lineArgLength >= 0) {
 					
 					for(i = 0; i < lineArgLength; ++i) {
-						//printf("%s ->", entireLine[i+1]);
+						//printf("[%d]-%s ->", i+1, entireLine[i+1]);
 						builtInTable[j].args[i] = entireLine[i+1];
-						//printf("%s\n",  builtInTable[j].args[i]);
+						//printf("[%d]-%s\n",i, builtInTable[j].args[i]);
+
 						// 	THIS IS THE ONE THAT PRINTS CORECTLY NOT PARSER.Y
 						// printf("%d - %s\n", i, currentArgs[i] );
 					}
+					
 					index = j;
 					break;
 				}
@@ -284,11 +205,18 @@ void getCurrentDirectory(){
           (void)printf("%s\n", cwd);
           free(cwd); /* free memory allocated by getcwd() */
 }
-
+/* Handles commands except built-in */
+void execute_it(){
+	
+}
+/* Handles all built in commands */
 void do_it(int builtin){
 	 // location of which executable
   //  whichLocation = malloc(sizeof(findWhich()));
     //strcpy(whichLocation, findWhich());
+    // 2 - printf("name - %s\n", builtInTable[4].args[0]);
+   
+   
 	switch(builtin) {
 		case 0:
             setenvFunction();
@@ -303,6 +231,7 @@ void do_it(int builtin){
         	cdFunction();
             break;
         case 4:
+
         	aliasFunction();
             break;
         case 5:
@@ -315,18 +244,30 @@ void do_it(int builtin){
 int builtInCommandArgsLength(int cmd) {
 	int i = 0;
  	while(builtInTable[cmd].args[i] != NULL) {
-		printf("command args - %s\n",builtInTable[cmd].args[i]);
+		// printf("command args - %s\n",builtInTable[cmd].args[i]);
 		++i;
 	}
 	return i;
 }
 
 /* Returns the length of entireLine[] */
+// HERE
 int entireLineLength() {
 	int i = 0;
  	while(entireLine[i+1] != NULL) {
+ 		//printf("%s\n", entireLine[i]);
 		++i;
 	}
+
+	return i;
+}
+int printLineLength() {
+	int i = 0;
+ 	while(entireLine[i+1] != NULL) {
+ 		printf("%s - ", entireLine[i]);
+		++i;
+	}
+	printf("\n");
 	return i;
 }
 void cdFunction() {
@@ -440,35 +381,42 @@ int aliasFunction() {
 	cmd = 4;
 	int flag = FALSE;
 	int alias_argLength = builtInCommandArgsLength(cmd);
+	
+	// 1 - printf("name - %s\n", builtInTable[4].args[0]);
+	
 	// printf("Start of alias - argLength : %d\n", alias_argLength);
 	// if user types alias, no arguments exist 
 	if(alias_argLength == 0){
-		// printf("Args length == 0\n");
 		printaliasFunction();
-	//	flag = FALSE;
 	}
 	else if(alias_argLength == 1){
 		printf("Error - Formatting : alias variable name\n");
 	}
 
 	else if(alias_argLength == 2){
+		// builtInTable .args is not being reset
 		name = builtInTable[4].args[0];
 		word = builtInTable[4].args[1];
-
+		
+		// printf("name - %s\n", builtInTable[4].args[0]);
+		
 		// TO DO - HALF WORKING
 		if(checkVariable(name) == FALSE){
 			return FALSE;
 		}
 		if(name != NULL && word != NULL) {
 				int i;
-
+				//printf("%s - %s\n", name, word);
 				/*Checks to see if the alias name already exists*/
 				for(i = 0; i < MAX_ALIAS; i++) {
 					if(aliasTable[i].used == 1) {
+						//printf("i - %d is used\n", i);
+						//printf("alias[i] = %s | %s\n", aliasTable[i].aliasName, name);
 						if(strcmp(aliasTable[i].aliasName, name) == 0) {
-							builtInCommandArgsLength(cmd);
+							// builtInCommandArgsLength(cmd);
 							printf("Alias name already exists.\n");
 							flag = FALSE;
+							return flag;
 						}
 					}
 				}
@@ -477,11 +425,12 @@ int aliasFunction() {
 					/* This is where the error is, setting everything 
 					 in the alias table to 1 */
 					if(aliasTable[i].used == 0) {
+						// printf("0 - i - %d\n", i);
 						aliasTable[i].aliasName = name;
 						aliasTable[i].aliasContent = word;
 						aliasTable[i].used = 1;
 
-						// initialize currentArgs[]
+						// initializeEntireLine();
 						// initializeCurrentArgs();
 						// rest name & word
 						// name = NULL;
@@ -561,4 +510,105 @@ int checkVariable(char* c) {
 	}
 	// printf("variable");
 	return TRUE;
+}
+
+
+void initializeEntireLine() {
+	int i = 0;
+	for(i; i < MAXARGS; ++i) {
+		entireLine[i] = NULL;
+	}
+}
+
+/* Initializing all built in commands */
+void initializeBuiltInCommands() {
+	int k = 0;
+	/* Static - Only can initialize these variables once */
+	/* commandName */
+	my_setenv.commandName = "setenv";
+	my_printenv.commandName = "printenv";
+	my_unsetenv.commandName = "unsetenv";
+	my_cd.commandName = "cd";
+	my_alias.commandName = "alias";
+	my_unalias.commandName = "unalias";
+	my_bye.commandName = "bye";
+
+	
+	/* args[] */
+	for(k; k < MAXARGS; ++k){
+		my_setenv.args[k] = NULL;
+		my_printenv.args[k] = NULL;
+		my_unsetenv.args[k] = NULL;
+		my_cd.args[k] = NULL;
+		my_alias.args[k] = NULL;
+		my_unalias.args[k] = NULL;
+		my_bye.args[k] = NULL;
+
+	}
+	
+}
+
+/* Initialize built in table */
+void initializeBuiltInTable() {
+	builtInTable[0] = my_setenv;
+	builtInTable[1] = my_printenv;
+	builtInTable[2] = my_unsetenv;
+	builtInTable[3] = my_cd;
+	builtInTable[4] = my_alias;
+	builtInTable[5] = my_unalias;
+	builtInTable[6] = my_bye;
+
+}
+
+/* Initialize alias table */
+void initializeAliasTable() {
+	int i = 0;
+	for(i; i < MAX_ALIAS; ++i) {
+		aliasTable[i].used = 0;
+		aliasTable[i].aliasName = NULL;
+		aliasTable[i].aliasContent = NULL;
+	}
+}
+
+void initializeVariableTable() {
+	int i = 0;
+	for(i; i < MAX_VARIABLES; ++i) {
+		variableTable[i].used = 0;
+		variableTable[i].variable = NULL;
+		variableTable[i].word = NULL;
+	}
+}
+
+void initializeCurrentArgs() {
+	int i = 0;
+	for(i; i < MAXARGS; ++i) {
+		//currentArgs[i] = NULL;
+		/*
+
+		my_setenv.args[i] = NULL;
+		my_printenv.args[i] = NULL;
+		my_unsetenv.args[i] = NULL;
+		my_cd.args[i] = NULL;
+		my_alias.args[i] = NULL;
+		my_unalias.args[i] = NULL;
+		my_bye.args[i] = NULL;*/
+
+		builtInTable[0].args[i] = NULL;
+		builtInTable[1].args[i] = NULL;
+		builtInTable[2].args[i] = NULL;
+		builtInTable[3].args[i] = NULL;
+		builtInTable[4].args[i] = NULL;
+		builtInTable[5].args[i] = NULL;
+
+	}
+
+}
+void printPrompt() {
+	int i = 0;
+	for(i; i < MAX_PROMPT_LENGTH; ++i) {
+			promptResponse[i] = '\0';
+	}
+	globalReadOffset = 0;
+	printf("> ");
+	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
 }

@@ -74,9 +74,11 @@ void processCommand();
 
 /* processCommand() functions */
 void processAlias();
-int isAlias(char* c);
+int isAlias(char* c);	// inside process alias
 int isBuiltInCommand();
 void do_it(int builtin);
+void execute_it();
+
 
 /* do_it(int) */
 void cdFunction();
