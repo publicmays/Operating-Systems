@@ -72,7 +72,7 @@ void printPrompt();
 int getCommand();
 void processCommand();
 
-/* in processCommand() */
+/* processCommand() functions */
 void processAlias();
 int isAlias(char* c);
 int isBuiltInCommand();
@@ -89,8 +89,8 @@ int aliasFunction();
 int unaliasFunction();
 
 int checkVariable(char* c);
-int commandArgsLength(int cmd);
+int builtInCommandArgsLength(int cmd);
+int entireLineLength();
 void understand_errors();
 void init_scanner_and_parse();
 
-char* findWhich();

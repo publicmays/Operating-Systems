@@ -12,7 +12,6 @@
 ************************/
 #include "includes.h"
 
-
 /************** Externs **************/
 /* Prompt */
 extern int globalReadOffset;

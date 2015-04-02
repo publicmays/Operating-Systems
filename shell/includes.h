@@ -65,6 +65,7 @@ int getCommand() {
 	/* Reset wordCount back to 0 because newline */
 	wordCount = 0;
 	initializeCurrentArgs();
+	initializeEntireLine();
 	/* When you call yyparse
 	 * 1. firstWord is set
 	 * 2. currentArgs[] = the rest of the tokens in the line
@@ -75,7 +76,7 @@ int getCommand() {
 		return ERRORS;
 	}
 	else {
-		if(strcmp(firstWord, builtInTable[6].commandName) == 0){
+		if(strcmp(entireLine[0], builtInTable[6].commandName) == 0){
 			return BYE;
 		}
 		else {
@@ -88,12 +89,8 @@ int getCommand() {
  * nonbuilt in - execute 
  */
 void processCommand() {
-	/* Debug - see currentArgs[] in line
-	 	int i = 0;
-	 		while(builtInTable[3].args[i] != NULL) {
-			printf("%s\n",builtInTable[3].args[i]);
-			++i;
-		}*/
+	processAlias();
+	
 	int builtin = isBuiltInCommand();
 	if(builtin != -1) {
 		do_it(builtin);
@@ -102,13 +99,28 @@ void processCommand() {
 	else {
 		execute_it();
 	}*/
+
+	/* Debug - see currentArgs[] in line
+	 	int i = 0;
+	 		while(builtInTable[3].args[i] != NULL) {
+			printf("%s\n",builtInTable[3].args[i]);
+			++i;
+		}
+		int i = 0;
+		for(i; i < entireLineLength(); ++i) {
+			
+			printf("%d - %s \n", i, entireLine[i]);
+		}
+	*/
 }
+
 void processAlias() {
-	int aliasIndexFound = -1;
-	int i;
-	for(i = 0; i < wordCount-1; ++i) {
+	int aliasIndexFound = -1, i;
+	for(i = 0; i < entireLineLength(); ++i) {
+		// find index where alias is found
 		aliasIndexFound = isAlias(entireLine[i]);
-		if(aliasIndexFound <= 0){
+		// if index is not -1, replace entireLine[i] with aliasContent
+		if(aliasIndexFound >= 0){
 			entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
 		}
 	}
@@ -119,6 +131,7 @@ int isAlias(char* c) {
 	for(i = 0; i < MAX_ALIAS; i++) {
 		if(aliasTable[i].used == 1) {
 			if(strcmp(aliasTable[i].aliasName, c) == 0) {
+				// return index where alias is found
 				return i;
 			}
 		}
@@ -229,23 +242,34 @@ void printPrompt() {
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
 }
 
-/* Returns index of built in command in builtInTable, -1 !(builtIn command)*/
+/* Returns index of built in command in builtInTable, 
+ * Returns -1 if it's not a built-in command */
 int isBuiltInCommand() {
 	int index = -1, j, i;
-	for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
-		// first word is built in command
-		if(strcmp(firstWord, builtInTable[j].commandName) == 0) {
-			
-			/* set command arguments 
-			 * Note - Extra blank argument produced with -1, 
-			 * changed to -2 */
-			for(i = 0; i < wordCount-2; ++i) {
-				builtInTable[j].args[i] = currentArgs[i];
-				// 	THIS IS THE ONE THAT PRINTS CORECTLY NOT PARSER.Y
-				// printf("%d - %s\n", i, currentArgs[i] );
+	int lineArgLength = entireLineLength()-1;
+	if(entireLine[0] != NULL) {
+		//printf("el[0] - %s", entireLine[0]);
+		for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
+			// if first word is built in command, 0 = successful
+			if(strcmp(entireLine[0], builtInTable[j].commandName) == 0) {
+				printf("el[0] = built in\n");
+				/* if there's arguments after entireLine[0] 
+				 * Don't forget to initializeEntireLine() in getCommand 
+				 * Set command arguments 
+				 * Note - Extra blank argument produced with -1, */
+				if(lineArgLength >= 0) {
+					
+					for(i = 0; i < lineArgLength; ++i) {
+						//printf("%s ->", entireLine[i+1]);
+						builtInTable[j].args[i] = entireLine[i+1];
+						//printf("%s\n",  builtInTable[j].args[i]);
+						// 	THIS IS THE ONE THAT PRINTS CORECTLY NOT PARSER.Y
+						// printf("%d - %s\n", i, currentArgs[i] );
+					}
+					index = j;
+					break;
+				}
 			}
-			index = j;
-			break;
 		}
 	}
 	return index;
@@ -287,11 +311,20 @@ void do_it(int builtin){
 	}
 
 }
-/* returns the amount of arguments in line after 1st token */
-int commandArgsLength(int cmd) {
+/* Returns the amount of arguments in line after 1st token */
+int builtInCommandArgsLength(int cmd) {
 	int i = 0;
  	while(builtInTable[cmd].args[i] != NULL) {
-		// printf("command args - %s\n",builtInTable[cmd].args[i]);
+		printf("command args - %s\n",builtInTable[cmd].args[i]);
+		++i;
+	}
+	return i;
+}
+
+/* Returns the length of entireLine[] */
+int entireLineLength() {
+	int i = 0;
+ 	while(entireLine[i+1] != NULL) {
 		++i;
 	}
 	return i;
@@ -299,7 +332,7 @@ int commandArgsLength(int cmd) {
 void cdFunction() {
 	// Debug getCurrentDirectory();
 	int cdIndex = 3;
-	int cdArgLength = commandArgsLength(cdIndex);	// #define CD 3
+	int cdArgLength = builtInCommandArgsLength(cdIndex);	// #define CD 3
 
 	/* "path", 'path' - 3 tokens */
 	if(cdArgLength <= 3){
@@ -335,66 +368,13 @@ void cdFunction() {
 	}
 
 }
-char* findWhich()
-{
 
-	char* concatMe = NULL;
-	// char* path = malloc(256*sizeof(char));
-	strcpy(path, getenv("PATH"));
-	char pathDir[256];
-
-	int j = 0;
-	for(j; j < 256; ++j)
-	{
-		pathDir[j] = '\0';
-	}
-
-	strcpy(pathDir, strtok(path, ":"));	
-
-	while(pathDir != NULL)
-	{
-		if(concatMe)
-		{
-			free(concatMe);
-			concatMe = NULL;
-		}
-
-		concatMe = malloc(256*sizeof(char));
-		strcpy(concatMe, pathDir);
-		strcat(concatMe, "/which");
-		printf("\nPathdir now equals %s", concatMe);
-
-		if ( access(concatMe, F_OK) != -1)
-		{
-			printf("\nWhich found in: %s\n\n", concatMe);
-			return concatMe;
-		}
-		else
-		{
-			printf("\nWhich not found in: %s\n\n", concatMe);
-		}
-
-		int i = 0;
-		for(i; i < 256; ++i)
-		{
-			concatMe[i] = '\0';
-		}
-
-		strcpy(pathDir, strtok(NULL, ":"));	
-	}
-
-	if(path)
-	{
-		free(path);
-		path = NULL;
-	}
-}
 
 int setenvFunction() {
 	char * variable = builtInTable[0].args[0];
 	char * word = builtInTable[0].args[1];
 	cmd = 0;
-	int setenv_argLength = commandArgsLength(cmd);
+	int setenv_argLength = builtInCommandArgsLength(cmd);
 	// printf("variable:%d\n", setenv_argLength);
 	//printf("word:%s\n", word);
 
@@ -459,7 +439,7 @@ int aliasFunction() {
 	char * word; 
 	cmd = 4;
 	int flag = FALSE;
-	int alias_argLength = commandArgsLength(cmd);
+	int alias_argLength = builtInCommandArgsLength(cmd);
 	// printf("Start of alias - argLength : %d\n", alias_argLength);
 	// if user types alias, no arguments exist 
 	if(alias_argLength == 0){
@@ -486,7 +466,7 @@ int aliasFunction() {
 				for(i = 0; i < MAX_ALIAS; i++) {
 					if(aliasTable[i].used == 1) {
 						if(strcmp(aliasTable[i].aliasName, name) == 0) {
-							commandArgsLength(cmd);
+							builtInCommandArgsLength(cmd);
 							printf("Alias name already exists.\n");
 							flag = FALSE;
 						}
@@ -518,7 +498,7 @@ int aliasFunction() {
 		printf("Error - Too  many arguments for alias.\n");
 	}
 
-	// alias_argLength = commandArgsLength(cmd);
+	// alias_argLength = builtInCommandArgsLength(cmd);
 	// printf("End of alias - argLength : %d\n", alias_argLength);
 	return flag;
 }
@@ -551,29 +531,23 @@ void printaliasFunction() {
 			printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
 		}
 	}
-
 }
 
 /* TODO - alias fdsa**(), because scanner doesn't take in **(), it just makes alias fdsa */
 int checkVariable(char* c) {
 	int i = 0, length = strlen(c);
 	int firstToken = 0, flag = FALSE;
-	
 	for(i; i < length; ++i) {
 		// first Token
 		if(i == 0) {
-		
 			firstToken = (int)*c;
-
 			 // printf("firstToken %d\n", firstToken);
-
 			if( !((firstToken >= 65 && firstToken <= 90) || (firstToken >= 97 && firstToken <= 122)) ){
 				// [A-Za-z] = Ascii table 65 - 90, 97- 122
 				printf("Error - 1st token doesn't start with [a-zA-Z]\n");
 				return FALSE;
 			}
 		}	
-		
 		// traverse through the rest of the tokens
 		else {
 			if( !( (*c >= 48 && *c<= 57) || ( *c >= 65 && *c <= 90 ) || (*c >= 97 && *c <= 122) || (*c == 95) ) ){
@@ -582,13 +556,9 @@ int checkVariable(char* c) {
 			return FALSE;
 			}
 		}
-
 		// printf("%d - %c\n", (int)*c, *c);
 		++c;
-		
 	}
 	// printf("variable");
 	return TRUE;
-	
-	
 }
