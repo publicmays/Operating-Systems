@@ -5,15 +5,14 @@
 static int globalReadOffset;
 static char promptResponse[500];
 int wordCount = 0;
-char* firstWord;
 
 /* all args after 1st word - line : cmd currentArgs[] */
 char* currentArgs[MAXARGS];
-/* User inputs entire line array */
-char* entireLine[MAXARGS];
+
 char* path;
 char* home;
 int cmd;
+
 /* Built in commands */
 static command my_setenv;
 static command my_printenv;
@@ -25,11 +24,21 @@ static command my_bye;
 
 static char* whichLocation = NULL;
 
-/* Externs in main.c */
+/********* Externs - Begin *********/
 static command commandTable[MAX_COMMANDS];
 static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
 static variable variableTable[MAX_VARIABLES];
+/* User inputs entire line array */
+char* entireLine[MAXARGS];	
+// this checks word[0], word[1], word[length-1] to compare to ${_}
+char* checkEnvironmentTokens[3];
+
+/********* Externs - End *********/
+// this holds [$,{,}]
+static char* environmentVariableSyntax[3];
+
+char* firstWord;	// clean up
 
 /* Pipelining */
 pid_t pid[3];
@@ -59,6 +68,7 @@ void shell_init() {
 	strcpy(home, getenv("HOME"));
 	cmd = -1;
 
+	/* Initialize Environment Variable Expansion */
 	pipe(ab);
 	pipe(bc);
 	pipe(ca);
@@ -97,6 +107,7 @@ int getCommand() {
 		else {
 		// this is working fine - printLineLength();
 			return OK;
+
 		}
 	}
 }
@@ -105,10 +116,16 @@ int getCommand() {
  * nonbuilt in - execute 
  */
 void processCommand() {
-
+	// printLineLength();
+	printf("processCommand\n");
+	printf("%s ", checkEnvironmentTokens[0]);
+	/*printf("%c ", checkEnvironmentTokens[1]);
+	printf("%c ", checkEnvironmentTokens[2]);
+	printf("processCommandEnd\n");*/
 	/* fixed - had to add if(strcmp(entireLine[0],my_alias.commandName) != 0) */
 	processAlias(); 
 	
+	/* HERE process environment */
 	int builtin = isBuiltInCommand();
 	
 	// 3 - printf("name - %s\n", builtInTable[4].args[0]);
@@ -121,18 +138,7 @@ void processCommand() {
 		// execute_it();
 	}
 
-	/* Debug - see currentArgs[] in line
-	 	int i = 0;
-	 		while(builtInTable[3].args[i] != NULL) {
-			printf("%s\n",builtInTable[3].args[i]);
-			++i;
-		}
-		int i = 0;
-		for(i; i < entireLineLength(); ++i) {
-			
-			printf("%d - %s \n", i, entireLine[i]);
-		}
-	*/
+
 }
 int checkForMoreAliases() {
 	// go through each line in entireLine
@@ -781,6 +787,11 @@ void initializeVariableTable() {
 		variableTable[i].variable = NULL;
 		variableTable[i].word = NULL;
 	}
+
+	// initialize environmentVariableSyntax[]
+	environmentVariableSyntax[0] = "$";
+	environmentVariableSyntax[1] = "{";
+	environmentVariableSyntax[1] = "}";
 }
 
 void initializeCurrentArgs() {
