@@ -780,7 +780,7 @@ case 5:
 YY_RULE_SETUP
 #line 25 "scanner.l"
 { yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
-											yylval.string[0] = '\0'; yylval.string++; yyparse(); return WORD; } 
+											yylval.string[0] = '\0'; yylval.string++; return WORD; } 
 	YY_BREAK
 case 6:
 YY_RULE_SETUP

@@ -134,27 +134,40 @@ void processCommand() {
 		}
 	*/
 }
-void checkForMoreAliases() {
+int checkForMoreAliases() {
 	// go through each line in entireLine
 	// call process alias if you find another alias
-
+	int aliasIndexFound = -1, i;
+	for(i = 0; i < entireLineLength(); ++i) {
+		// find index where alias is found
+		aliasIndexFound = isAlias(entireLine[i]);
+		// if index is not -1, replace entireLine[i] with aliasContent
+		if(aliasIndexFound >= 0){
+			//entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+			processAlias();
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 void processAlias() {
 	int aliasIndexFound = -1, i;
-	// if entireLine[0] != my_alias.commandName
-	if(strcmp(entireLine[0],my_alias.commandName) != 0) {
-		//printf("%s != ", entireLine[0])
-		for(i = 0; i < entireLineLength(); ++i) {
-			// find index where alias is found
-			aliasIndexFound = isAlias(entireLine[i]);
-			// if index is not -1, replace entireLine[i] with aliasContent
-			if(aliasIndexFound >= 0){
-				entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+	do{
+		// if entireLine[0] != my_alias.commandName
+		if(strcmp(entireLine[0],my_alias.commandName) != 0) {
+			//printf("%s != ", entireLine[0])
+			for(i = 0; i < entireLineLength(); ++i) {
+				// find index where alias is found
+				aliasIndexFound = isAlias(entireLine[i]);
+				// if index is not -1, replace entireLine[i] with aliasContent
+				if(aliasIndexFound >= 0){
+					entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+				}
 			}
+			//printLineLength();	
 		}
-		//printLineLength();	
-	}
-	checkForMoreAliases();
+	}while(checkForMoreAliases() == TRUE);
+	
 }
 
 int isAlias(char* c) {
@@ -423,7 +436,6 @@ void do_it(int builtin){
         	cdFunction();
             break;
         case 4:
-
         	aliasFunction();
             break;
         case 5:

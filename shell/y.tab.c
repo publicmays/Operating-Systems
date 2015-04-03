@@ -456,8 +456,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    37,    37,    38,    42,    42,    42,    42,    45,    68,
-      74,    75
+       0,    37,    37,    38,    42,    42,    42,    42,    45,    69,
+      75,    76
 };
 #endif
 
@@ -1231,8 +1231,9 @@ yyreduce:
         case 8:
 #line 45 "parser.y" /* yacc.c:1646  */
     {
-			printf("word - ");
-			printf("j -%c\n", yylval.string[0]);
+			// printf("word - ");
+			// printf("j -%c\n", yylval.string[0]);
+			// printf("")
 			/*
 			if(yylval.string[0] == " \""){
 
@@ -1252,21 +1253,21 @@ yyreduce:
 			
 			}
 	}
-#line 1256 "y.tab.c" /* yacc.c:1646  */
+#line 1257 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 68 "parser.y" /* yacc.c:1646  */
+#line 69 "parser.y" /* yacc.c:1646  */
     {
 			yyparse();
 			printf("%s\n", yylval.string);
 			printf("Inside quoted\n");
 	}
-#line 1266 "y.tab.c" /* yacc.c:1646  */
+#line 1267 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1270 "y.tab.c" /* yacc.c:1646  */
+#line 1271 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1494,7 +1495,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 77 "parser.y" /* yacc.c:1906  */
+#line 78 "parser.y" /* yacc.c:1906  */
 
 
 
