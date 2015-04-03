@@ -6,6 +6,7 @@
 
 #define MAXARGS 300
 
+/********* Externs - Begin *********/
 extern void yyerror(char* s);
 extern int yylex();
 extern int readInputForLexer(char* buffer,int *numBytesRead,int maxBytesToRead);
@@ -15,7 +16,20 @@ extern int wordCount;
 extern char* firstWord;
 extern char* currentArgs[MAXARGS];
 extern char* entireLine[MAXARGS];
+extern char* checkEnvironmentTokens;
+/********* Externs - End *********/
 
+/********* Functions - Begin *********/
+
+char tempEnvironment[3];
+ void storePossibleEnvironmentTokens(char c[], int lastIndex){
+	// store 1st, second, last token in word
+	tempEnvironment[0] = c[0];
+	tempEnvironment[1] = c[1];
+	tempEnvironment[2] = c[lastIndex];	
+} 
+
+/********* Functions - End *********/
 %}
 
 %union {
@@ -44,13 +58,18 @@ command:
 
 word_case: WORD {
 			// printf("word - ");
-			// printf("j -%c\n", yylval.string[0]);
-			// printf("")
-			/*
-			if(yylval.string[0] == " \""){
-
-			}*/
+			
+			/* if word > 3, possible environment variable ${} 
+			 * storePossibleEnvironmentTokens 
+			 * store 1st, second, last token in word */
+			if( (strlen(yylval.string)) > 3){
+				storePossibleEnvironmentTokens($1, strlen(yylval.string)-1);
+				checkEnvironmentTokens = tempEnvironment;
+		
+			}
+			
 			entireLine[wordCount] = $1;
+
 			// printf("%d - %s\n",wordCount, entireLine[wordCount]);
 			if(wordCount++ == 0 ) {
 				firstWord = $1;
@@ -74,6 +93,9 @@ quoted_case: QUOTED {
 
 open_brace_case: OPEN_BRACE;
 close_brace_case: CLOSE_BRACE;
+
+
+
 
 %%
 
