@@ -16,19 +16,34 @@ extern int wordCount;
 extern char* firstWord;
 extern char* currentArgs[MAXARGS];
 extern char* entireLine[MAXARGS];
-extern char* checkEnvironmentTokens;
+extern char* checkEnvironmentTokens[MAXARGS];
+
 /********* Externs - End *********/
 
 /********* Functions - Begin *********/
 
 char tempEnvironment[3];
- void storePossibleEnvironmentTokens(char c[], int lastIndex){
-	// store 1st, second, last token in word
-	tempEnvironment[0] = c[0];
-	tempEnvironment[1] = c[1];
-	tempEnvironment[2] = c[lastIndex];	
-} 
+char* environmentVariables[MAXARGS];
 
+
+/*int isEnvironmentVariable(char* c){
+	if(strcmp(c, environmentVariableSyntax) == 0){
+		return 0;
+	}
+	return 1;
+	//printf("%s\n", c);
+	// printf("%s |",environmentVariableSyntax);
+}*/
+void storeEnvironmentVariable(int wordCount, char environmentVar[], int lastIndex){
+	int i = 0;
+	char c[lastIndex-2];
+	for(i; i < lastIndex; ++i) {
+		c[i] = environmentVar[i+2];
+	}
+
+	environmentVariables[wordCount] = c;
+
+}
 /********* Functions - End *********/
 %}
 
@@ -57,32 +72,33 @@ command:
 	;
 
 word_case: WORD {
-			// printf("word - ");
+			//printf("word - ");
 			
+			//initializeEnvironmentVariableSyntax();
+
+			entireLine[wordCount] = $1;
+			/* Environment Expansion */
 			/* if word > 3, possible environment variable ${} 
 			 * storePossibleEnvironmentTokens 
 			 * store 1st, second, last token in word */
-			if( (strlen(yylval.string)) > 3){
+
+			/*if( (strlen(yylval.string)) > 3){
 				storePossibleEnvironmentTokens($1, strlen(yylval.string)-1);
-				checkEnvironmentTokens = tempEnvironment;
+				checkEnvironmentTokens[wordCount] = tempEnvironment;
+
+				if(isEnvironmentVariable(checkEnvironmentTokens[wordCount]) == 0)
+				{
+					storeEnvironmentVariable(wordCount, $1,strlen(yylval.string)-1);
+					printf("%s\n", environmentVariables[wordCount]);	
+				}
+			}
+			 else {
+			 	checkEnvironmentTokens[wordCount] = " ";
+			 }
+			*/
+			++wordCount;
+
 		
-			}
-			
-			entireLine[wordCount] = $1;
-
-			// printf("%d - %s\n",wordCount, entireLine[wordCount]);
-			if(wordCount++ == 0 ) {
-				firstWord = $1;
-			}
-			if(wordCount > 1) {
-				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
-
-				currentArgs[wordCount-2] = $1;
-				
-			// this prints incorrectly
-			// 	 printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
-			
-			}
 	};
 
 quoted_case: QUOTED {

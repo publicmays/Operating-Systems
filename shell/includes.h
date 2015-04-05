@@ -7,7 +7,7 @@ static char promptResponse[500];
 int wordCount = 0;
 
 /* all args after 1st word - line : cmd currentArgs[] */
-char* currentArgs[MAXARGS];
+
 
 char* path;
 char* home;
@@ -30,15 +30,18 @@ static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
 static variable variableTable[MAX_VARIABLES];
 /* User inputs entire line array */
-char* entireLine[MAXARGS];	
+char* entireLine[MAXARGS];		
+// this holds [$,{,}]
+static char environmentVariableSyntax[3];
 // this checks word[0], word[1], word[length-1] to compare to ${_}
-char* checkEnvironmentTokens[3];
+char possibleEnvironmentTokens[3];
+char* checkEnvironmentTokens[MAXARGS];
+char* environmentExpansionVariables[MAXARGS];
+
 
 /********* Externs - End *********/
-// this holds [$,{,}]
-static char* environmentVariableSyntax[3];
 
-char* firstWord;	// clean up
+
 
 /* Pipelining */
 pid_t pid[3];
@@ -54,11 +57,13 @@ void shell_init() {
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
 	initializeEntireLine();
+	
 	initializeBuiltInCommands();
 	initializeBuiltInTable();
 	initializeAliasTable();
 	initializeVariableTable();
 	initializeCurrentArgs();
+
 	
 	/* Initialize all our tables and variables */
 	/* Initialize all variables */
@@ -66,6 +71,14 @@ void shell_init() {
 	home = allocate(char);
 	strcpy(path, getenv("PATH"));
 	strcpy(home, getenv("HOME"));
+
+	/* Environment Variable */
+	initializePossibleEnvironmentTokens();
+	environmentVariableSyntax[0] = '$';
+	environmentVariableSyntax[1] = '{';
+	environmentVariableSyntax[2] = '}';
+	initializeEnvironmentExpansionVariables();
+
 	cmd = -1;
 
 	/* Initialize Environment Variable Expansion */
@@ -84,12 +97,9 @@ int getCommand() {
 	/* Reset wordCount back to 0 because newline */
 	wordCount = 0;
 	initializeEntireLine();
+	initializeEnvironmentExpansionVariables();
 	initializeCurrentArgs();
-	
-	/* When you call yyparse
-	 * 1. firstWord is set
-	 * 2. currentArgs[] = the rest of the tokens in the line
-	 */
+
 	if(yyparse() != 0) {
 		// unsuccessfull
 		// understand_errors(); // YYABORT - 1
@@ -105,25 +115,18 @@ int getCommand() {
 			return BYE;
 		}
 		else {
-		// this is working fine - printLineLength();
+			// printEntireLine();
+			// printCheckEnvironmentTokens();
 			return OK;
-
 		}
 	}
 }
 
-/* Built in, 
- * nonbuilt in - execute 
- */
 void processCommand() {
-	// printLineLength();
-	printf("processCommand\n");
-	printf("%s ", checkEnvironmentTokens[0]);
-	/*printf("%c ", checkEnvironmentTokens[1]);
-	printf("%c ", checkEnvironmentTokens[2]);
-	printf("processCommandEnd\n");*/
-	/* fixed - had to add if(strcmp(entireLine[0],my_alias.commandName) != 0) */
-	processAlias(); 
+	
+	/* Note - had to add if(strcmp(entireLine[0],my_alias.commandName) != 0) */
+	processAlias();
+	processEnvironmentVariablesExpansion();
 	
 	/* HERE process environment */
 	int builtin = isBuiltInCommand();
@@ -159,9 +162,9 @@ int checkForMoreAliases() {
 void processAlias() {
 	int aliasIndexFound = -1, i;
 	do{
-		// if entireLine[0] != my_alias.commandName
+		/* If user doesn't input alias as the first command */
 		if(strcmp(entireLine[0],my_alias.commandName) != 0) {
-			//printf("%s != ", entireLine[0])
+			// printf("%s != ", entireLine[0])
 			for(i = 0; i < entireLineLength(); ++i) {
 				// find index where alias is found
 				aliasIndexFound = isAlias(entireLine[i]);
@@ -188,7 +191,103 @@ int isAlias(char* c) {
 	}
 	return -1;
 }
+/*********************** Start of Environment Variable Expansion ${_} ************************/
+void processEnvironmentVariablesExpansion(){
+	int i = 0, indexCounter = 0;
+	int wordLength = 0, environIndexFound = -1;
+	char* index;
+	char* temp[0];
+	// for every single world in entireLine[]
+ 	while(entireLine[i+1] != NULL) {
 
+ 		initializePossibleEnvironmentTokens();
+ 		wordLength = strlen(entireLine[i]);
+ 		indexCounter = 0;
+ 		char possibleEnvironmentVariable[wordLength-3];
+ 		temp[0] = NULL;
+ 		// for every single character in the word
+ 		for(index = entireLine[i]; *index; ++index){
+ 			// initialize possibleEnvironmentTokens
+ 			
+ 			// the word can possibly contain ${_}
+ 			if(wordLength > 3) {
+ 				
+ 				
+
+ 				if(indexCounter == 0 || indexCounter == 1 || indexCounter == wordLength-1){
+ 					storePossibleEnvironmentTokens(*index, indexCounter, wordLength);
+ 				}
+ 				else {
+ 					// store word[2] to word[lastIndex-1]
+ 					possibleEnvironmentVariable[indexCounter-2] = *index;
+ 					
+ 				}	
+ 			}
+ 			// if you hit the last index, possible environment tokens is complete
+ 			if(indexCounter == wordLength-1){
+
+ 				if(isEnvironmentVariable(possibleEnvironmentTokens) == TRUE) {
+ 				
+ 					environIndexFound = checkVariableTable((char*)&possibleEnvironmentVariable);
+ 					// printf("%d", environIndexFound);
+ 					// HERE
+ 				}
+ 				//printf("Start\n%s \n", possibleEnvironmentTokens);	
+ 				
+ 			}
+ 			++indexCounter;
+ 		}
+ 		
+		++i;
+	}
+
+	// entireLine[i] = per word
+	// *index per character in entireLine[i]
+	// indexCounter - length per word
+
+}
+int checkVariableTable(char* c) {
+	printf("%s", c);
+	int i;
+	for(i = 0; i < MAX_VARIABLES; i++) {
+		if(variableTable[i].used == 1) {
+			if(strcmp(variableTable[i].variable, c) == 0) {
+				// return index where environment variable is found
+				// printf("%s\n", variableTable[i].variable);
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+int isEnvironmentVariable(char inputTokens[3]) {
+	if(inputTokens[0] != environmentVariableSyntax[0])
+	{
+		return FALSE;
+	}
+	if(inputTokens[1] != environmentVariableSyntax[1])
+	{
+		return FALSE;
+	}
+	if(inputTokens[2] != environmentVariableSyntax[2])
+	{
+		return FALSE;
+	}
+ 	return TRUE;
+}
+
+void storePossibleEnvironmentTokens(char index, int indexCounter, int wordLength) {
+	if(indexCounter == 0 || indexCounter == 1){
+		possibleEnvironmentTokens[indexCounter] = index;
+	}
+	else {
+		possibleEnvironmentTokens[2] = index;
+	}
+}
+void initializePossibleEnvironmentTokens() {
+	memset(possibleEnvironmentTokens, 0, 3);
+}
+/*********************** End of Environment Variable Expansion ${_} ************************/
 
 void understand_errors() {}
 void init_scanner_and_parse() {}
@@ -461,20 +560,40 @@ int builtInCommandArgsLength(int cmd) {
 }
 
 /* Returns the length of entireLine[] */
-// HERE
 int entireLineLength() {
 	int i = 0;
  	while(entireLine[i+1] != NULL) {
- 		//printf("%s\n", entireLine[i]);
 		++i;
 	}
 
 	return i;
 }
-int printLineLength() {
+
+int checkEnvironmentTokensLength() {
 	int i = 0;
+ 	while(checkEnvironmentTokens[i+1] != NULL) {
+		++i;
+	}
+	return i;
+}
+int printEntireLine() {
+	printf("printEntireLine\n");
+	int i = 0;
+	char* index;
  	while(entireLine[i+1] != NULL) {
- 		printf("%s - ", entireLine[i]);
+ 		
+ 		printf("%d - %s | ", i, entireLine[i]);
+		++i;
+	}
+	printf("\n");
+	return i;
+}
+
+int printCheckEnvironmentTokens() {
+	printf("checkEnvironmentTokens %d\n", checkEnvironmentTokensLength());
+	int i = 0;
+	while(checkEnvironmentTokens[i+1] != NULL) {
+ 		printf("%d - %s | ", i, checkEnvironmentTokens[i]);
 		++i;
 	}
 	printf("\n");
@@ -639,13 +758,6 @@ int aliasFunction() {
 						aliasTable[i].aliasName = name;
 						aliasTable[i].aliasContent = word;
 						aliasTable[i].used = 1;
-
-						// initializeEntireLine();
-						// initializeCurrentArgs();
-						// rest name & word
-						// name = NULL;
-						// word = NULL;
-
 						flag = TRUE;
 						return flag;
 						// break;
@@ -730,6 +842,12 @@ void initializeEntireLine() {
 	}
 }
 
+void initializeEnvironmentExpansionVariables(){
+	int i = 0;
+	for(i; i < MAXARGS; ++i) {
+		environmentExpansionVariables[i] = NULL;
+	}
+}
 /* Initializing all built in commands */
 void initializeBuiltInCommands() {
 	int k = 0;
@@ -788,16 +906,13 @@ void initializeVariableTable() {
 		variableTable[i].word = NULL;
 	}
 
-	// initialize environmentVariableSyntax[]
-	environmentVariableSyntax[0] = "$";
-	environmentVariableSyntax[1] = "{";
-	environmentVariableSyntax[1] = "}";
+	
 }
 
 void initializeCurrentArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
-		//currentArgs[i] = NULL;
+
 		/*
 
 		my_setenv.args[i] = NULL;

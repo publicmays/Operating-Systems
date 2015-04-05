@@ -79,13 +79,23 @@ void processCommand();
 
 /* processCommand() functions */
 void processAlias();
-int isAlias(char* c);	// inside process alias
+void processEnvironmentVariablesExpansion();
 int isBuiltInCommand();
 void do_it(int builtin);
 
 int executable(char *);
 void execute_it();
 
+/* processAlias() */
+int checkForMoreAliases();
+int isAlias(char* c);
+
+/* processEnvironmentVariables() */
+void initializeEnvironmentExpansionVariables();
+void storePossibleEnvironmentTokens(char index, int indexCounter, int wordLength);
+int isEnvironmentVariable(char inputTokens[3]);
+void initializePossibleEnvironmentTokens();
+int checkVariableTable(char* c);
 
 /* do_it(int) */
 void cdFunction();
@@ -99,10 +109,15 @@ int unaliasFunction();
 
 int checkVariable(char* c);
 int builtInCommandArgsLength(int cmd);
-int entireLineLength();
 void understand_errors();
 void init_scanner_and_parse();
 
 /* Pipelining */
 void strrev(char *p);
+
+/* Debugging */
+int entireLineLength();
+int printEntireLine();
+int printCheckEnvironmentTokens();
+int checkEnvironmentTokensLength();
 

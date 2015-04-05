@@ -71,6 +71,7 @@
 
 #define MAXARGS 300
 
+/********* Externs - Begin *********/
 extern void yyerror(char* s);
 extern int yylex();
 extern int readInputForLexer(char* buffer,int *numBytesRead,int maxBytesToRead);
@@ -80,9 +81,37 @@ extern int wordCount;
 extern char* firstWord;
 extern char* currentArgs[MAXARGS];
 extern char* entireLine[MAXARGS];
+extern char* checkEnvironmentTokens[MAXARGS];
+
+/********* Externs - End *********/
+
+/********* Functions - Begin *********/
+
+char tempEnvironment[3];
+char* environmentVariables[MAXARGS];
 
 
-#line 86 "y.tab.c" /* yacc.c:339  */
+/*int isEnvironmentVariable(char* c){
+	if(strcmp(c, environmentVariableSyntax) == 0){
+		return 0;
+	}
+	return 1;
+	//printf("%s\n", c);
+	// printf("%s |",environmentVariableSyntax);
+}*/
+void storeEnvironmentVariable(int wordCount, char environmentVar[], int lastIndex){
+	int i = 0;
+	char c[lastIndex-2];
+	for(i; i < lastIndex; ++i) {
+		c[i] = environmentVar[i+2];
+	}
+
+	environmentVariables[wordCount] = c;
+
+}
+/********* Functions - End *********/
+
+#line 115 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -138,12 +167,12 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 21 "parser.y" /* yacc.c:355  */
+#line 50 "parser.y" /* yacc.c:355  */
 
 	int my_number;
 	char* string;
 
-#line 147 "y.tab.c" /* yacc.c:355  */
+#line 176 "y.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -158,7 +187,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 162 "y.tab.c" /* yacc.c:358  */
+#line 191 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -456,8 +485,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    37,    37,    38,    42,    42,    42,    42,    45,    69,
-      75,    76
+       0,    66,    66,    67,    71,    71,    71,    71,    74,   104,
+     110,   111
 };
 #endif
 
@@ -1229,45 +1258,51 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 45 "parser.y" /* yacc.c:1646  */
+#line 74 "parser.y" /* yacc.c:1646  */
     {
-			// printf("word - ");
-			// printf("j -%c\n", yylval.string[0]);
-			// printf("")
-			/*
-			if(yylval.string[0] == " \""){
-
-			}*/
-			entireLine[wordCount] = (yyvsp[0].string);
-			// printf("%d - %s\n",wordCount, entireLine[wordCount]);
-			if(wordCount++ == 0 ) {
-				firstWord = (yyvsp[0].string);
-			}
-			if(wordCount > 1) {
-				/* wordCount = 2, index for currentArgs[2-2] = currentArgs[0] */
-
-				currentArgs[wordCount-2] = (yyvsp[0].string);
-				
-			// this prints incorrectly
-			// 	 printf("%d - %s\n",wordCount-2,currentArgs[wordCount-2]);
+			//printf("word - ");
 			
+			//initializeEnvironmentVariableSyntax();
+
+			entireLine[wordCount] = (yyvsp[0].string);
+			/* Environment Expansion */
+			/* if word > 3, possible environment variable ${} 
+			 * storePossibleEnvironmentTokens 
+			 * store 1st, second, last token in word */
+
+			/*if( (strlen(yylval.string)) > 3){
+				storePossibleEnvironmentTokens($1, strlen(yylval.string)-1);
+				checkEnvironmentTokens[wordCount] = tempEnvironment;
+
+				if(isEnvironmentVariable(checkEnvironmentTokens[wordCount]) == 0)
+				{
+					storeEnvironmentVariable(wordCount, $1,strlen(yylval.string)-1);
+					printf("%s\n", environmentVariables[wordCount]);	
+				}
 			}
+			 else {
+			 	checkEnvironmentTokens[wordCount] = " ";
+			 }
+			*/
+			++wordCount;
+
+		
 	}
-#line 1257 "y.tab.c" /* yacc.c:1646  */
+#line 1292 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 69 "parser.y" /* yacc.c:1646  */
+#line 104 "parser.y" /* yacc.c:1646  */
     {
 			yyparse();
 			printf("%s\n", yylval.string);
 			printf("Inside quoted\n");
 	}
-#line 1267 "y.tab.c" /* yacc.c:1646  */
+#line 1302 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1271 "y.tab.c" /* yacc.c:1646  */
+#line 1306 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1495,7 +1530,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 78 "parser.y" /* yacc.c:1906  */
+#line 116 "parser.y" /* yacc.c:1906  */
 
 
 

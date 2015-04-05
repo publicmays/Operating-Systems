@@ -4,7 +4,7 @@
  * Version : 1.0
  * Comments : 
  * is entireWordLength going to allow | / : > < as entries
- * clean up firstWord and currentArgs
+ * clean up  checkEnvironmentTokens
  * recursive alias 
 ************************/
 #include "includes.h"
@@ -20,6 +20,7 @@ extern alias aliasTable[MAX_ALIAS];
 /* Function Prototypes */
 int main() {
 	shell_init();
+
 	while(1) {
 		printPrompt();
 		switch(cmd = getCommand()){
