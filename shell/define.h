@@ -119,6 +119,4 @@ void strrev(char *p);
 /* Debugging */
 int entireLineLength();
 int printEntireLine();
-int printCheckEnvironmentTokens();
-int checkEnvironmentTokensLength();
 

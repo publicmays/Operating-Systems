@@ -35,7 +35,6 @@ char* entireLine[MAXARGS];
 static char environmentVariableSyntax[3];
 // this checks word[0], word[1], word[length-1] to compare to ${_}
 char possibleEnvironmentTokens[3];
-char* checkEnvironmentTokens[MAXARGS];
 char* environmentExpansionVariables[MAXARGS];
 
 
@@ -626,13 +625,7 @@ int entireLineLength() {
 	return i;
 }
 
-int checkEnvironmentTokensLength() {
-	int i = 0;
- 	while(checkEnvironmentTokens[i+1] != NULL) {
-		++i;
-	}
-	return i;
-}
+
 int printEntireLine() {
 	printf("printEntireLine\n");
 	int i = 0;
@@ -646,16 +639,7 @@ int printEntireLine() {
 	return i;
 }
 
-int printCheckEnvironmentTokens() {
-	printf("checkEnvironmentTokens %d\n", checkEnvironmentTokensLength());
-	int i = 0;
-	while(checkEnvironmentTokens[i+1] != NULL) {
- 		printf("%d - %s | ", i, checkEnvironmentTokens[i]);
-		++i;
-	}
-	printf("\n");
-	return i;
-}
+
 void cdFunction() {
 	// Debug getCurrentDirectory();
 	int cdIndex = 3;

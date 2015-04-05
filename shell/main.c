@@ -4,8 +4,6 @@
  * Version : 1.0
  * Comments : 
  * is entireWordLength going to allow | / : > < as entries
- * clean up  checkEnvironmentTokens
- * recursive alias 
 ************************/
 #include "includes.h"
 
