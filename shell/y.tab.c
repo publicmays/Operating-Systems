@@ -78,40 +78,18 @@ extern int readInputForLexer(char* buffer,int *numBytesRead,int maxBytesToRead);
 extern int getWordCount();
 
 extern int wordCount;
-extern char* firstWord;
-extern char* currentArgs[MAXARGS];
+
 extern char* entireLine[MAXARGS];
-extern char* checkEnvironmentTokens[MAXARGS];
+
 
 /********* Externs - End *********/
 
 /********* Functions - Begin *********/
 
-char tempEnvironment[3];
-char* environmentVariables[MAXARGS];
 
-
-/*int isEnvironmentVariable(char* c){
-	if(strcmp(c, environmentVariableSyntax) == 0){
-		return 0;
-	}
-	return 1;
-	//printf("%s\n", c);
-	// printf("%s |",environmentVariableSyntax);
-}*/
-void storeEnvironmentVariable(int wordCount, char environmentVar[], int lastIndex){
-	int i = 0;
-	char c[lastIndex-2];
-	for(i; i < lastIndex; ++i) {
-		c[i] = environmentVar[i+2];
-	}
-
-	environmentVariables[wordCount] = c;
-
-}
 /********* Functions - End *********/
 
-#line 115 "y.tab.c" /* yacc.c:339  */
+#line 93 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -167,12 +145,12 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 50 "parser.y" /* yacc.c:355  */
+#line 28 "parser.y" /* yacc.c:355  */
 
 	int my_number;
 	char* string;
 
-#line 176 "y.tab.c" /* yacc.c:355  */
+#line 154 "y.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -187,7 +165,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 191 "y.tab.c" /* yacc.c:358  */
+#line 169 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -485,8 +463,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    66,    66,    67,    71,    71,    71,    71,    74,   104,
-     110,   111
+       0,    44,    44,    45,    49,    49,    49,    49,    52,    64,
+      70,    71
 };
 #endif
 
@@ -1258,51 +1236,33 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 74 "parser.y" /* yacc.c:1646  */
+#line 52 "parser.y" /* yacc.c:1646  */
     {
 			//printf("word - ");
 			
 			//initializeEnvironmentVariableSyntax();
 
 			entireLine[wordCount] = (yyvsp[0].string);
-			/* Environment Expansion */
-			/* if word > 3, possible environment variable ${} 
-			 * storePossibleEnvironmentTokens 
-			 * store 1st, second, last token in word */
-
-			/*if( (strlen(yylval.string)) > 3){
-				storePossibleEnvironmentTokens($1, strlen(yylval.string)-1);
-				checkEnvironmentTokens[wordCount] = tempEnvironment;
-
-				if(isEnvironmentVariable(checkEnvironmentTokens[wordCount]) == 0)
-				{
-					storeEnvironmentVariable(wordCount, $1,strlen(yylval.string)-1);
-					printf("%s\n", environmentVariables[wordCount]);	
-				}
-			}
-			 else {
-			 	checkEnvironmentTokens[wordCount] = " ";
-			 }
-			*/
+		
 			++wordCount;
 
 		
 	}
-#line 1292 "y.tab.c" /* yacc.c:1646  */
+#line 1252 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 104 "parser.y" /* yacc.c:1646  */
+#line 64 "parser.y" /* yacc.c:1646  */
     {
 			yyparse();
 			printf("%s\n", yylval.string);
 			printf("Inside quoted\n");
 	}
-#line 1302 "y.tab.c" /* yacc.c:1646  */
+#line 1262 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1306 "y.tab.c" /* yacc.c:1646  */
+#line 1266 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1530,7 +1490,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 116 "parser.y" /* yacc.c:1906  */
+#line 76 "parser.y" /* yacc.c:1906  */
 
 
 
