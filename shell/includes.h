@@ -127,7 +127,7 @@ void processCommand() {
 	/* Note - had to add if(strcmp(entireLine[0],my_alias.commandName) != 0) */
 	processAlias();
 	processEnvironmentVariablesExpansion();
-	
+	printEntireLine();
 	/* HERE process environment */
 	int builtin = isBuiltInCommand();
 	
@@ -196,7 +196,65 @@ void processEnvironmentVariablesExpansion(){
 	int i = 0, indexCounter = 0;
 	int wordLength = 0, environIndexFound = -1;
 	char* index;
-	char* temp[0];
+	do{
+		// for every single world in entireLine[]
+	 	while(entireLine[i+1] != NULL) {
+
+	 		initializePossibleEnvironmentTokens();
+	 		wordLength = strlen(entireLine[i]);
+	 		indexCounter = 0;
+	 		char possibleEnvironmentVariable[wordLength-3];
+	 		
+	 		// for every single character in the word
+	 		for(index = entireLine[i]; *index; ++index){
+	 			// initialize possibleEnvironmentTokens
+	 			
+	 			// the word can possibly contain ${_}
+	 			if(wordLength > 3) {
+	 				
+	 				
+
+	 				if(indexCounter == 0 || indexCounter == 1 || indexCounter == wordLength-1){
+	 					storePossibleEnvironmentTokens(*index, indexCounter, wordLength);
+	 				}
+	 				else {
+	 					// store word[2] to word[lastIndex-1]
+	 					possibleEnvironmentVariable[indexCounter-2] = *index;
+	 					
+	 				}	
+	 			}
+	 			// if you hit the last index, possible environment tokens is complete
+	 			if(indexCounter == wordLength-1){
+	 				// temp = possibleEnvironmentVariable;
+	 				// printf("%s", temp);
+	 				if(isEnvironmentVariable(possibleEnvironmentTokens) == TRUE) {
+	 					
+	 					environIndexFound = checkVariableTable(possibleEnvironmentVariable, wordLength-3);
+	 					// printf("%d", environIndexFound);
+	 					if(environIndexFound >= 0){
+							entireLine[i] = variableTable[environIndexFound].word;
+						}
+	 				}
+
+	 			}
+
+	 			++indexCounter;
+	 		}
+	 		
+			++i;
+		}
+	}while(checkForMoreEnvironmentExpansions() == TRUE);
+
+	// entireLine[i] = per word
+	// *index per character in entireLine[i]
+	// indexCounter - length per word
+}
+
+int checkForMoreEnvironmentExpansions() {
+	int i = 0, indexCounter = 0;
+	int wordLength = 0, environIndexFound = -1;
+	char* index;
+	char* temp = malloc(sizeof(char));
 	// for every single world in entireLine[]
  	while(entireLine[i+1] != NULL) {
 
@@ -204,7 +262,7 @@ void processEnvironmentVariablesExpansion(){
  		wordLength = strlen(entireLine[i]);
  		indexCounter = 0;
  		char possibleEnvironmentVariable[wordLength-3];
- 		temp[0] = NULL;
+ 		
  		// for every single character in the word
  		for(index = entireLine[i]; *index; ++index){
  			// initialize possibleEnvironmentTokens
@@ -225,33 +283,32 @@ void processEnvironmentVariablesExpansion(){
  			}
  			// if you hit the last index, possible environment tokens is complete
  			if(indexCounter == wordLength-1){
-
+ 				// temp = possibleEnvironmentVariable;
+ 				// printf("%s", temp);
  				if(isEnvironmentVariable(possibleEnvironmentTokens) == TRUE) {
- 				
- 					environIndexFound = checkVariableTable((char*)&possibleEnvironmentVariable);
+ 					
+ 					environIndexFound = checkVariableTable(possibleEnvironmentVariable, wordLength-3);
  					// printf("%d", environIndexFound);
- 					// HERE
+ 					if(environIndexFound >= 0){
+						processEnvironmentVariablesExpansion();
+						//entireLine[i] = variableTable[environIndexFound].word;
+					}
  				}
- 				//printf("Start\n%s \n", possibleEnvironmentTokens);	
- 				
+
  			}
+
  			++indexCounter;
  		}
  		
 		++i;
 	}
-
-	// entireLine[i] = per word
-	// *index per character in entireLine[i]
-	// indexCounter - length per word
-
 }
-int checkVariableTable(char* c) {
-	printf("%s", c);
+int checkVariableTable(char c[], int length) {
+	//printf("%s - %zu", c, strlen(c));
 	int i;
 	for(i = 0; i < MAX_VARIABLES; i++) {
 		if(variableTable[i].used == 1) {
-			if(strcmp(variableTable[i].variable, c) == 0) {
+			if(strncmp(variableTable[i].variable, c, length) == 0) {
 				// return index where environment variable is found
 				// printf("%s\n", variableTable[i].variable);
 				return i;

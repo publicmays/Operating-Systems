@@ -95,7 +95,8 @@ void initializeEnvironmentExpansionVariables();
 void storePossibleEnvironmentTokens(char index, int indexCounter, int wordLength);
 int isEnvironmentVariable(char inputTokens[3]);
 void initializePossibleEnvironmentTokens();
-int checkVariableTable(char* c);
+int checkVariableTable(char c[], int length);
+int checkForMoreEnvironmentExpansions();
 
 /* do_it(int) */
 void cdFunction();
