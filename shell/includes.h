@@ -30,7 +30,8 @@ static command builtInTable[MAX_BUILT_IN_COMMANDS];
 static alias aliasTable[MAX_ALIAS];
 static variable variableTable[MAX_VARIABLES];
 /* User inputs entire line array */
-char* entireLine[MAXARGS];		
+char* entireLine[MAXARGS];
+char* entireLine2[MAXARGS];			
 // this holds [$,{,}]
 static char environmentVariableSyntax[3];
 // this checks word[0], word[1], word[length-1] to compare to ${_}
@@ -56,6 +57,7 @@ void shell_init() {
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
 	initializeEntireLine();
+	initializeEntireLine2();
 	
 	initializeBuiltInCommands();
 	initializeBuiltInTable();
@@ -96,6 +98,7 @@ int getCommand() {
 	/* Reset wordCount back to 0 because newline */
 	wordCount = 0;
 	initializeEntireLine();
+	initializeEntireLine2();
 	initializeEnvironmentExpansionVariables();
 	initializeCurrentArgs();
 
@@ -126,7 +129,7 @@ void processCommand() {
 	/* Note - had to add if(strcmp(entireLine[0],my_alias.commandName) != 0) */
 	processAlias();
 	processEnvironmentVariablesExpansion();
-	printEntireLine();
+	
 	/* HERE process environment */
 	int builtin = isBuiltInCommand();
 	
@@ -137,7 +140,7 @@ void processCommand() {
 		
 	}
 	else {
-		// execute_it();
+		 execute_it();
 	}
 
 
@@ -405,8 +408,42 @@ void strrev(char *p)
 
 /* Handles commands except built-in */
 void execute_it(){
+	int i = 0; 
 
-	printf("Not built in, attempting to execute.\n");
+	while(entireLine[i+1] != NULL) {
+		entireLine2[i] = entireLine[i];
+		++i;
+	}
+
+	//printf("Not built in, attempting to execute.\n");
+
+	pid_t pid[2];
+
+	pipe(ab);
+
+
+
+	pid[0]=fork();
+
+	if(pid[0] == -1) {
+		printf("There was an error.\n");
+	}
+
+	else if(pid[0] != 0) {
+		//printf("In Parent.\n");
+	}
+
+	else {
+		//printEntireLine2();
+		int returnVal = execvp(entireLine[0], entireLine2);
+
+		if(returnVal == -1) 
+			printf("Error executing command.\n");
+
+		exit(0);
+	}
+
+	wait();
 
 	/*char* executableLine[entireLineLength() - 1];
 
@@ -418,87 +455,6 @@ void execute_it(){
 	}
 	fork();
 	execvp(entireLine[0], executableLine);*/
-
-	pid[0] = fork();
-	int i = 0;
-	if(pid[0] == 0) {
-		char buffer[100];
-
-	    fgets(buffer, sizeof(buffer), stdin);
-	    int len = strlen(buffer);
-
-	    if (write(ab[1], buffer, len) != len)
-	        printf("Failed to write to children");
-	    if (read(ca[0], buffer, len) != len)
-	        printf("Failed to read from children");
-	    
-	    printf("%.*s", len, buffer);
-        i = 0;
-        for(i; i<2; i++)
-        {close(ab[i]); close(bc[i]); close(ca[i]); }
-
-        //dup2(STDOUT_FILENO, ab[1]);
-        //printf("%s", str2);
-        // quit so your child doesn't end up in the main program
-        exit(0);
-	}
-	pid[1]=fork();
-
-	if(pid[1] == 0)
-	{
-	        
-	        // Process B reads from process A
-	        dup2(ab[0], STDIN_FILENO);
-	        // Process B writes to process C
-	        dup2(bc[1], STDOUT_FILENO);
-	        
-	        for(i = 0; i<2; i++)
-	        { close(ab[i]); close(bc[i]); close(ca[i]); }
-
-	        char str[100];
-	        scanf ("%[^\n]%*c", str);
-	        strrev(str);
-	        printf("%s\n", str);
-
-	        exit(0);
-	}
-
-	pid[2]=fork();
-	if(pid[2] == 0)
-	{
-	        
-	        // Process C reads from process B
-	        dup2(bc[0], STDIN_FILENO);
-	        // Process C writes to process A
-	        dup2(ca[1], STDOUT_FILENO);
-	        for(i=0; i<2; i++)
-	        { close(ab[i]); close(bc[i]); close(ca[i]); }
-	    	char str[100];        
-	        scanf ("%[^\n]%*c", str);
-	        i = 0;
-			while (str[i]){
-			    
-			    str[i] = toupper(str[i]);
-			    i++;
-			}
-
-	        
-	        printf("%s\n", str);
-	        
-	        exit(0);
-	}
-
-	i = 0;
-	for(i=0; i<2; i++)
-	{ close(ab[i]); close(bc[i]); close(ca[i]); }
-
-	
-    wait();
-    wait();
-    wait();
-
-
-	i = 0;
 	/*
 	switch(pids[i] = fork()) {
 		case -1:
@@ -638,6 +594,20 @@ int printEntireLine() {
 	printf("\n");
 	return i;
 }
+
+int printEntireLine2() {
+	printf("printEntireLine2\n");
+	int i = 0;
+	char* index;
+ 	while(entireLine2[i] != NULL) {
+ 		
+ 		printf("%d - %s | ", i, entireLine2[i]);
+		++i;
+	}
+	printf("\n");
+	return i;
+}
+
 
 
 void cdFunction() {
@@ -880,6 +850,12 @@ void initializeEntireLine() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
 		entireLine[i] = NULL;
+	}
+}
+void initializeEntireLine2() {
+	int i = 0;
+	for(i; i < MAXARGS; ++i) {
+		entireLine2[i] = NULL;
 	}
 }
 

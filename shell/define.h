@@ -62,6 +62,7 @@ typedef struct {
 /******************************* Function Prototypes *******************************/
 /* Initialization */
 void initializeEntireLine();
+void initializeEntireLine2();
 void initializeBuiltInCommands();
 void initializeBuiltInTable();
 void initializeAliasTable();
