@@ -37,8 +37,6 @@ static char environmentVariableSyntax[3];
 // this checks word[0], word[1], word[length-1] to compare to ${_}
 char possibleEnvironmentTokens[3];
 char* environmentExpansionVariables[MAXARGS];
-extern FILE * yyin;
-extern yylex();
 
 /********* Externs - End *********/
 
@@ -46,7 +44,8 @@ extern yylex();
 
 /* Pipelining */
 pid_t pid[3];
-int ab[2], bc[2], ca[2];
+
+int pipes[MAX_PIPES][2];
 
 
 /********* Functions *********/
@@ -84,9 +83,6 @@ void shell_init() {
 	cmd = -1;
 
 	/* Initialize Environment Variable Expansion */
-	pipe(ab);
-	pipe(bc);
-	pipe(ca);
 }
 
 int getCommand() {
@@ -102,6 +98,7 @@ int getCommand() {
 	initializeEntireLine2();
 	initializeEnvironmentExpansionVariables();
 	initializeCurrentArgs();
+
 	if(yyparse() != 0) {
 		// unsuccessfull
 		// understand_errors(); // YYABORT - 1
@@ -128,6 +125,7 @@ void processCommand() {
 	
 	processAlias();
 	processEnvironmentVariablesExpansion();
+	processPipes();
 	
 	int builtin = isBuiltInCommand();
 	
@@ -408,7 +406,7 @@ void execute_it(){
 
 	pid_t pid[2];
 
-	pipe(ab);
+	//pipe(ab);
 
 
 	pid[0]=fork();
@@ -433,7 +431,7 @@ void execute_it(){
 
 	wait();
 
-	FILE *in = NULL;
+	/*FILE *in = NULL;
 	FILE *out = NULL;
 
 	int fd_in = STDIN_FILENO;
@@ -473,7 +471,7 @@ void execute_it(){
 
 		exit(0);
 	}
-	wait();
+	wait();*/
 
 	/*char* executableLine[entireLineLength() - 1];
 
@@ -988,4 +986,63 @@ void printPrompt() {
 	globalReadOffset = 0;
 	printf("> ");
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
+}
+
+
+
+void processPipes() {
+	int numPipes = 0;
+
+	int i = 0;
+	int append = -1;
+
+	FILE * in = NULL;
+	FILE *out = NULL;
+
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
+
+	char *infile = NULL;
+	char *outfile = NULL;
+
+	for(i; i < entireLineLength(); i++)
+		if(strcmp(entireLine[i], "|") == 0)
+			numPipes++;
+
+	for(i = 0; i < numPipes; i++) {
+		if(pipe(pipes[i]) < 0) {
+			printf("Error piping: %d", i);
+		}
+	}
+
+	// get all tokens before first >, <, | 
+	// while(strcmp(entireLine[i+1], "|") == 0)
+
+	for(i; i < entireLineLength(); i++) {
+		if(strcmp(entireLine[i], "<") == 0)
+			infile = entireLine[i+1];
+		if(strcmp(entireLine[i], ">") == 0) {
+			outfile = entireLine[i+1];
+			append = 0;
+		}
+		if(strcmp(entireLine[i], ">>") == 0) {
+			outfile = entireLine[i+1];
+			append = 1;
+		}
+	}
+
+	if(infile != NULL) {
+		in = fopen(infile, "r");
+		fd_in = fileno(in);
+	}
+
+	if(outfile != NULL && append == 0) {
+		out = fopen(outfile, "w+");
+		fd_out = fileno(out);
+	}
+	else if(outfile != NULL && append == 1) {
+		out = fopen(outfile, "a+");
+		fd_out = fileno(out);
+	}
+
 }

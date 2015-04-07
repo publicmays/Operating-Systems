@@ -67,6 +67,7 @@ void initializeBuiltInTable();
 void initializeAliasTable();
 void initializeCurrentArgs();
 void initializeVariableTable();
+void initializeFileRedirection();
 
 /* yyparse*/
 int yyparse();
@@ -114,7 +115,7 @@ void understand_errors();
 void init_scanner_and_parse();
 
 /* Pipelining */
-void strrev(char *p);
+void processPipes();
 
 /* Debugging */
 int entireLineLength();
