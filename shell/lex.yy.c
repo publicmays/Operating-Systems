@@ -481,8 +481,7 @@ char *yytext;
 #define YY_INPUT(b,r,s) readInputForLexer(b,&r,s)
 
 
-
-#line 486 "lex.yy.c"
+#line 485 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -669,12 +668,12 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 16 "scanner.l"
+#line 15 "scanner.l"
 
 
 
 								
-#line 678 "lex.yy.c"
+#line 677 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -759,57 +758,57 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 20 "scanner.l"
+#line 19 "scanner.l"
 return OPEN_BRACE;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 21 "scanner.l"
+#line 20 "scanner.l"
 return CLOSE_BRACE;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 23 "scanner.l"
+#line 22 "scanner.l"
 { return yytext[0]; }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
-#line 25 "scanner.l"
+#line 24 "scanner.l"
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 25 "scanner.l"
+#line 24 "scanner.l"
 { yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
 											yylval.string[0] = '\0'; yylval.string++; return WORD; } 
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 27 "scanner.l"
+#line 26 "scanner.l"
 { yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
 											yylval.string[0] = '\0'; yylval.string++; return WORD; }											
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 29 "scanner.l"
+#line 28 "scanner.l"
 {yylval.string = strdup(yytext);return WORD;};
 	YY_BREAK
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 31 "scanner.l"
+#line 30 "scanner.l"
 {;}/* ignore whitespace */
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 32 "scanner.l"
+#line 31 "scanner.l"
 {;}/* everything else = error */
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 35 "scanner.l"
+#line 34 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 813 "lex.yy.c"
+#line 812 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1807,7 +1806,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 35 "scanner.l"
+#line 34 "scanner.l"
 
 
 

@@ -37,7 +37,8 @@ static char environmentVariableSyntax[3];
 // this checks word[0], word[1], word[length-1] to compare to ${_}
 char possibleEnvironmentTokens[3];
 char* environmentExpansionVariables[MAXARGS];
-
+extern FILE * yyin;
+extern yylex();
 
 /********* Externs - End *********/
 
@@ -101,7 +102,6 @@ int getCommand() {
 	initializeEntireLine2();
 	initializeEnvironmentExpansionVariables();
 	initializeCurrentArgs();
-
 	if(yyparse() != 0) {
 		// unsuccessfull
 		// understand_errors(); // YYABORT - 1
@@ -126,14 +126,11 @@ int getCommand() {
 
 void processCommand() {
 	
-	/* Note - had to add if(strcmp(entireLine[0],my_alias.commandName) != 0) */
 	processAlias();
 	processEnvironmentVariablesExpansion();
 	
-	/* HERE process environment */
 	int builtin = isBuiltInCommand();
 	
-	// 3 - printf("name - %s\n", builtInTable[4].args[0]);
 	if(builtin != -1) {
 
 		do_it(builtin);
@@ -396,15 +393,7 @@ void getCurrentDirectory(){
           (void)printf("%s\n", cwd);
           free(cwd); /* free memory allocated by getcwd() */
 }
-void strrev(char *p)
-{
-  char *q = p;
-  while(q && *q) ++q;
-  for(--q; p < q; ++p, --q)
-    *p = *p ^ *q,
-    *q = *p ^ *q,
-    *p = *p ^ *q;
-}
+
 
 /* Handles commands except built-in */
 void execute_it(){
@@ -420,7 +409,6 @@ void execute_it(){
 	pid_t pid[2];
 
 	pipe(ab);
-
 
 
 	pid[0]=fork();
@@ -443,6 +431,48 @@ void execute_it(){
 		exit(0);
 	}
 
+	wait();
+
+	FILE *in = NULL;
+	FILE *out = NULL;
+
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
+
+	char *infile = "input.txt";
+	char *outfile = "output.txt";
+
+	if(infile != NULL) {
+		in = fopen(infile, "r");
+		fd_in = fileno(in);
+	}
+
+	if(outfile != NULL) {
+		out = fopen(outfile, "w+");
+		fd_out = fileno(out);
+	}
+
+	pid_t processID = fork();
+	if(processID == 0) {
+		if(fd_in != STDIN_FILENO) {
+			dup2(fd_in, STDIN_FILENO);
+			dup2(fd_in, STDERR_FILENO);
+		}
+		if(fd_out != STDOUT_FILENO) {
+			dup2(fd_out, STDOUT_FILENO);
+		}
+
+		yyin = in;
+
+		while(entireLine[i+1] != NULL) {
+			entireLine2[i] = entireLine[i];
+			++i;
+		}
+
+		int returnVal = execvp(entireLine[0], entireLine2);
+
+		exit(0);
+	}
 	wait();
 
 	/*char* executableLine[entireLineLength() - 1];

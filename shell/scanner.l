@@ -9,7 +9,6 @@
 #define YY_INPUT(b,r,s) readInputForLexer(b,&r,s)
 
 
-
 %}
 
 

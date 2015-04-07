@@ -14,6 +14,7 @@ extern char promptResponse[500];
 /* Tables */
 extern command builtInTable[MAX_BUILT_IN_COMMANDS];
 extern alias aliasTable[MAX_ALIAS];
+extern FILE * yyin;
 
 /* Function Prototypes */
 int main() {

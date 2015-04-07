@@ -33,8 +33,7 @@
 #define MAXPATH 			100
 
 /* Pipelining */
-#define STD_IN 0
-#define STD_OUT 1
+#define MAX_PIPES			200
 
 
 /* Data Structures */
