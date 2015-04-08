@@ -406,14 +406,34 @@ void execute_it(){
 		++i;
 	}
 
-	//printf("Not built in, attempting to execute.\n");
+	pid_t pid[MAX_PIPES];
+/*
+	int c = 0;
+	int comds = 2;
+	for(c; c < comds; c++) {
+		switch(pid[c] = fork()) {
+			case 0:
+				switch(c) {
+					case 0:
+						close(STDOUT_FILENO);
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						close(commandTable[currPipe+1].io[0]);
+						in_redir();
+					case comds - 1:
+						close(STDIN_FILENO);
+						dup2(commandTable[currPipe].io[0], STDIN_FILENO);
+						out_redir();
+					default:
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						close(commandTable[currPipe+1].io[0]);
+				}
+		}
+	}*/
 
-	pid_t pid[2];
+		/* ONE COMMAND EXECVP WORKS *******************************
 
-	//pipe(ab);
-
-
-	pid[0]=fork();
+	pid[0] = fork();
 
 	if(pid[0] == -1) {
 		printf("There was an error.\n");
@@ -431,9 +451,12 @@ void execute_it(){
 			printf("Error executing command.\n");
 
 		exit(0);
-	}
-
+	} 
 	wait();
+
+	*******************************************************************************/
+
+	
 
 	/*FILE *in = NULL;
 	FILE *out = NULL;
@@ -463,8 +486,6 @@ void execute_it(){
 		if(fd_out != STDOUT_FILENO) {
 			dup2(fd_out, STDOUT_FILENO);
 		}
-
-		yyin = in;
 
 		while(entireLine[i+1] != NULL) {
 			entireLine2[i] = entireLine[i];
@@ -986,8 +1007,8 @@ void initializeCommandTable() {
 	int i = 0, j = 0; 
 	for(i; i < MAX_COMMANDS; ++i) {
 		commandTable[i].commandName = NULL;
-		commandTable[i].inputFileDirectory = 0;
-		commandTable[i].outputFileDirectory = 0;
+		commandTable[i].io[0] = 0;
+		commandTable[i].io[1] = 1;
 		commandTable[i].numArgs = 0;
 		for(j; j < MAXARGS; ++j) {
 			commandTable[i].args[j] = NULL;
@@ -1076,18 +1097,9 @@ void processPipes() {
 
 
 	}
-	printCommandTable();
+	//printCommandTable();
 
-	for(i = 0; i < numPipes; i++) {
-		if(pipe(pipes[i]) < 0) {
-			printf("Error piping: %d", i);
-		}
-	}
-
-	// get all tokens before first >, <, | 
-	// while(strcmp(entireLine[i+1], "|") == 0)
-
-	for(i; i < entireLineLength(); i++) {
+	/*for(i; i < entireLineLength(); i++) {
 		if(strcmp(entireLine[i], "<") == 0)
 			infile = entireLine[i+1];
 		if(strcmp(entireLine[i], ">") == 0) {
@@ -1098,6 +1110,60 @@ void processPipes() {
 			outfile = entireLine[i+1];
 			append = 1;
 		}
+	}*/
+
+	int currPipe = 0;
+	for(currPipe; currPipe <= numPipes; currPipe++) {
+		pipe(commandTable[currPipe].io);
+		printf("Piped: %d\n", currPipe);
+
+		if(currPipe == 0 && numPipes == 0) {
+			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
+			exit(0);
+		}
+		if(currPipe == 0 && numPipes > 0) {
+			printf("1");
+			int pid = fork();
+			if(pid == 0) {
+				printf("Its the first pipe!\n");
+				int i = 0; 
+
+				while(entireLine[i+1] != NULL) {
+					entireLine2[i] = entireLine[i];
+					++i;
+				}
+
+				//close(STDOUT_FILENO);
+				dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+				//close(commandTable[currPipe+1].io[0]);
+				execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
+				
+				exit(0);
+			}
+			wait();
+			//in_redir();
+		}
+		if(currPipe == numPipes) {
+			printf("2");
+			printf("Its the last pipe!\n");
+			//close(STDIN_FILENO);
+			dup2(commandTable[currPipe-1].io[0], STDIN_FILENO);
+			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
+			exit(0);
+			//out_redir();
+		}
+		wait();
+		/*
+		else if(numPipes == 1) {
+			//in_redir();
+			//out_redir();
+		}
+		else {
+			printf("Middle pipe!\n");
+			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+			close(commandTable[currPipe+1].io[0]);
+		}*/
 	}
 
 	if(infile != NULL) {
@@ -1114,4 +1180,68 @@ void processPipes() {
 		fd_out = fileno(out);
 	}
 
+
+
 }
+/*
+void in_redir() {
+	FILE *in = NULL;
+	int fd_in = STDIN_FILENO;
+
+	char *infile = getInputFile();
+
+	if(infile != NULL) {
+		in = fopen(infile, "r");
+		fd_in = fileno(in);
+	}
+
+	pid_t processID = fork();
+
+	if(processID == 0) {
+		if(fd_in != STDIN_FILENO) {
+			dup2(fd_in, STDIN_FILENO);
+			dup2(fd_in, STDERR_FILENO);
+		}
+		if(fd_out != STDOUT_FILENO) {
+			dup2(fd_out, STDOUT_FILENO);
+		}
+
+		int returnVal = execvp(entireLine[0], entireLine2);
+		exit(0);
+	}
+	wait();
+}
+
+char * getInputFile() {
+
+	char *infile = NULL;
+
+	for(i; i < entireLineLength(); i++) {
+		if(strcmp(entireLine[i], "<") == 0)
+			infile = entireLine[i+1];
+	}
+
+	return infile;
+}
+
+
+void out_redir() {
+
+}
+
+char * getOutputFile() {
+
+	char *outfile = NULL;
+
+	for(i; i < entireLineLength(); i++) {
+		if(strcmp(entireLine[i], ">") == 0) {
+			outfile = entireLine[i+1];
+		}
+		if(strcmp(entireLine[i], ">>") == 0) {
+			outfile = entireLine[i+1];
+		}
+	}
+
+	return outfile;
+}
+*/

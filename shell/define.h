@@ -40,8 +40,7 @@
 typedef struct {
 	char *commandName;
 	int remote;
-	int inputFileDirectory;
-	int outputFileDirectory;
+	int io[2];
 	int numArgs;
 	char *args[MAXARGS];
 } command;
@@ -121,6 +120,10 @@ void init_scanner_and_parse();
 void processPipes();
 void buildCommandTable();
 void printCommandTable();
+void in_redir();
+void out_redir();
+char * getInputFile();
+char * getOutputFile();
 
 /* Debugging */
 int entireLineLength();
