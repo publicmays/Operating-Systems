@@ -4,6 +4,7 @@
  * Version : 1.0
  * Comments : 
  * is entireWordLength going to allow | / : > < as entries
+ * Does the commandTable ever get initialized
 ************************/
 #include "includes.h"
 

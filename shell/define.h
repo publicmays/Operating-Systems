@@ -58,6 +58,8 @@ typedef struct {
 	char *word;
 } variable;
 
+
+
 /******************************* Function Prototypes *******************************/
 /* Initialization */
 void initializeEntireLine();
@@ -68,6 +70,7 @@ void initializeAliasTable();
 void initializeCurrentArgs();
 void initializeVariableTable();
 void initializeFileRedirection();
+void initializeCommandTable();
 
 /* yyparse*/
 int yyparse();
@@ -116,6 +119,8 @@ void init_scanner_and_parse();
 
 /* Pipelining */
 void processPipes();
+void buildCommandTable();
+void printCommandTable();
 
 /* Debugging */
 int entireLineLength();

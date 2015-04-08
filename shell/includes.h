@@ -38,6 +38,8 @@ static char environmentVariableSyntax[3];
 char possibleEnvironmentTokens[3];
 char* environmentExpansionVariables[MAXARGS];
 
+
+
 /********* Externs - End *********/
 
 
@@ -64,6 +66,7 @@ void shell_init() {
 	initializeAliasTable();
 	initializeVariableTable();
 	initializeCurrentArgs();
+	initializeCommandTable();
 
 	
 	/* Initialize all our tables and variables */
@@ -98,7 +101,8 @@ int getCommand() {
 	initializeEntireLine2();
 	initializeEnvironmentExpansionVariables();
 	initializeCurrentArgs();
-
+	initializeCommandTable();
+	
 	if(yyparse() != 0) {
 		// unsuccessfull
 		// understand_errors(); // YYABORT - 1
@@ -976,7 +980,34 @@ void initializeCurrentArgs() {
 		builtInTable[5].args[i] = NULL;
 
 	}
+}
 
+void initializeCommandTable() {
+	int i = 0, j = 0; 
+	for(i; i < MAX_COMMANDS; ++i) {
+		commandTable[i].commandName = NULL;
+		commandTable[i].inputFileDirectory = 0;
+		commandTable[i].outputFileDirectory = 0;
+		commandTable[i].numArgs = 0;
+		for(j; j < MAXARGS; ++j) {
+			commandTable[i].args[j] = NULL;
+		}
+		
+	}
+}
+
+void printCommandTable() {
+	int i = 0, j = 0;
+	while(commandTable[i].commandName != NULL) {
+		printf("%s | ", commandTable[i].commandName);
+
+		while(commandTable[i].args[j] != NULL) {
+			printf("%s ", commandTable[i].args[j]);
+			++j;
+		}
+		++i;
+		printf("\n");
+	}
 }
 void printPrompt() {
 	int i = 0;
@@ -989,13 +1020,13 @@ void printPrompt() {
 }
 
 
-
 void processPipes() {
-	int numPipes = 0;
-
 	int i = 0;
 	int append = -1;
-
+	int numArgs = 0;
+	int numPipes = 0;
+	int commandCount = 0;
+	
 	FILE * in = NULL;
 	FILE *out = NULL;
 
@@ -1006,8 +1037,31 @@ void processPipes() {
 	char *outfile = NULL;
 
 	for(i; i < entireLineLength(); i++)
-		if(strcmp(entireLine[i], "|") == 0)
-			numPipes++;
+	{
+		// assume first word will be command
+		if(i == 0){
+			commandTable[i].commandName = entireLine[i];
+		}
+		else if(strcmp(entireLine[i], "|") == 0) {
+			numArgs = 0;
+			commandCount = 0;
+			++numPipes;
+		}
+		else {
+			if(commandCount == 0 && numPipes > 0) {
+				commandTable[numPipes].commandName = entireLine[i];
+				++commandCount;
+		
+			}
+			else {
+				commandTable[numPipes].args[numArgs] = entireLine[i];
+		
+				++numArgs;
+			}	
+		}
+
+	}
+	printCommandTable();
 
 	for(i = 0; i < numPipes; i++) {
 		if(pipe(pipes[i]) < 0) {
