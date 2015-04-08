@@ -1000,12 +1000,18 @@ void printCommandTable() {
 	int i = 0, j = 0;
 	while(commandTable[i].commandName != NULL) {
 		printf("%s | ", commandTable[i].commandName);
-
-		while(commandTable[i].args[j] != NULL) {
-			printf("%s ", commandTable[i].args[j]);
-			++j;
+		printf("%d", commandTable[i].numArgs);
+		for(j; j < commandTable[i].numArgs; ++j) {
+			
+			printf("%d - %s ",commandTable[i].numArgs, commandTable[i].args[j]);
+			/*printf("%s ",commandTable[i].args[0]);
+			printf("%s ", commandTable[i].args[1]);
+			printf("%s ",commandTable[i].args[2]);*/
+		
 		}
+
 		++i;
+		j = 0;
 		printf("\n");
 	}
 }
@@ -1025,6 +1031,7 @@ void processPipes() {
 	int append = -1;
 	int numArgs = 0;
 	int numPipes = 0;
+	int pipeCounter = 0;
 	int commandCount = 0;
 	
 	FILE * in = NULL;
@@ -1035,30 +1042,38 @@ void processPipes() {
 
 	char *infile = NULL;
 	char *outfile = NULL;
-
-	for(i; i < entireLineLength(); i++)
+	/* find numPipes */
+	for(i; i < entireLineLength(); ++i) {
+		if(strcmp(entireLine[i], "|") == 0)
+			++numPipes;
+	}
+	for(i = 0; i < entireLineLength(); i++)
 	{
 		// assume first word will be command
-		if(i == 0){
+		/*if(i == 0){
 			commandTable[i].commandName = entireLine[i];
+		}*/
+		
+		if(commandCount == 0) {
+			commandTable[pipeCounter].commandName = entireLine[i];
+			++commandCount;
+		
 		}
 		else if(strcmp(entireLine[i], "|") == 0) {
+			commandTable[pipeCounter].numArgs = numArgs;
 			numArgs = 0;
 			commandCount = 0;
-			++numPipes;
+			++pipeCounter;
+			if(pipeCounter == numPipes) {
+				commandTable[pipeCounter].numArgs = numArgs;
+			}
 		}
 		else {
-			if(commandCount == 0 && numPipes > 0) {
-				commandTable[numPipes].commandName = entireLine[i];
-				++commandCount;
-		
-			}
-			else {
-				commandTable[numPipes].args[numArgs] = entireLine[i];
-		
-				++numArgs;
-			}	
-		}
+			commandTable[pipeCounter].args[numArgs] = entireLine[i];
+			
+			++numArgs;
+		}	
+
 
 	}
 	printCommandTable();
