@@ -1068,13 +1068,9 @@ void processPipes() {
 		if(strcmp(entireLine[i], "|") == 0)
 			++numPipes;
 	}
+	/*********** build command table ***********/
 	for(i = 0; i < entireLineLength(); i++)
-	{
-		// assume first word will be command
-		/*if(i == 0){
-			commandTable[i].commandName = entireLine[i];
-		}*/
-		
+	{	
 		if(commandCount == 0) {
 			commandTable[pipeCounter].commandName = entireLine[i];
 			++commandCount;
@@ -1090,14 +1086,11 @@ void processPipes() {
 			}
 		}
 		else {
-			commandTable[pipeCounter].args[numArgs] = entireLine[i];
-			
+			commandTable[pipeCounter].args[numArgs] = entireLine[i];	
 			++numArgs;
 		}	
-
-
 	}
-	//printCommandTable();
+	// printCommandTable();
 
 	/*for(i; i < entireLineLength(); i++) {
 		if(strcmp(entireLine[i], "<") == 0)
