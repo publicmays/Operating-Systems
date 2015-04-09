@@ -1020,15 +1020,10 @@ void initializeCommandTable() {
 void printCommandTable() {
 	int i = 0, j = 0;
 	while(commandTable[i].commandName != NULL) {
-		printf("%s | ", commandTable[i].commandName);
-		printf("%d", commandTable[i].numArgs);
+		//printf("%s | ", commandTable[i].commandName);
+		//printf("%d", commandTable[i].numArgs);
 		for(j; j < commandTable[i].numArgs; ++j) {
-			
-			printf("%d - %s ",commandTable[i].numArgs, commandTable[i].args[j]);
-			/*printf("%s ",commandTable[i].args[0]);
-			printf("%s ", commandTable[i].args[1]);
-			printf("%s ",commandTable[i].args[2]);*/
-		
+			printf("%d - %s ",commandTable[i].numArgs, commandTable[i].args[j]);	
 		}
 
 		++i;
@@ -1090,7 +1085,7 @@ void processPipes() {
 			++numArgs;
 		}	
 	}
-	// printCommandTable();
+	//printCommandTable();
 
 	/*for(i; i < entireLineLength(); i++) {
 		if(strcmp(entireLine[i], "<") == 0)
@@ -1113,8 +1108,19 @@ void processPipes() {
 	
 
 	for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+		int length = commandTable[currentCommand].numArgs+1;
+	
+		char* tempArgs[length];
+		tempArgs[0] = commandTable[currentCommand].commandName;
+		for(i=0; i < commandTable[currentCommand].numArgs; ++i) {
+			tempArgs[i+1] = commandTable[currentCommand].args[i];
+		}
+
+		//for(i=0; i < length;++i)
+		//	printf("%s\n", tempArgs[i]);
+		
 		pid = fork();
-		printf("%d \n", pid);
+	
 		if(pid > 0) {
 			close(pipeArray[0]);
 			close(pipeArray[1]);
@@ -1141,7 +1147,8 @@ void processPipes() {
 				close(pipeArray[0]);
 				close(pipeArray[1]);
 			}
-			execvp(commandTable[currentCommand].commandName, commandTable[currentCommand].args);
+
+			execvp(commandTable[currentCommand].commandName, tempArgs);
 		}
 		else {
 			printf("else\n");
