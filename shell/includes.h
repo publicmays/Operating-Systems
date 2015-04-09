@@ -1025,7 +1025,6 @@ void printCommandTable() {
 		for(j; j < commandTable[i].numArgs; ++j) {
 			printf("%d - %s ",commandTable[i].numArgs, commandTable[i].args[j]);	
 		}
-
 		++i;
 		j = 0;
 		printf("\n");
@@ -1085,7 +1084,7 @@ void processPipes() {
 			++numArgs;
 		}	
 	}
-	//printCommandTable();
+	printCommandTable();
 
 	/*for(i; i < entireLineLength(); i++) {
 		if(strcmp(entireLine[i], "<") == 0)
@@ -1099,8 +1098,8 @@ void processPipes() {
 			append = 1;
 		}
 	}*/
-
-	int currentCommand = 0;
+/************************************* START *****************************************/
+	/*int currentCommand = 0;
 	int pid;
 
 
@@ -1109,7 +1108,7 @@ void processPipes() {
 		int pipeReceive[2];
 		int pipeSend[2];
 
-		printf("currentCommand: %d. numPipes: %d\n", currentCommand, numPipes);
+		// printf("currentCommand: %d. numPipes: %d\n", currentCommand, numPipes);
 
 		// if you're not the ending command, you're not creating a new pipe
 		if(currentCommand != numPipes) {
@@ -1124,9 +1123,10 @@ void processPipes() {
 		// printf("CMD: %s ARGS: ", commandTable[currentCommand].commandName);
 		for(i=0; i < commandTable[currentCommand].numArgs; ++i) {
 			// printf("%s ", commandTable[currentCommand].args[i] );
-			tempArgs[i+1] = commandTable[currentCommand].args[i];		}
+			tempArgs[i+1] = commandTable[currentCommand].args[i];		
+		}
 		printf( "\n" );
-		printCommandTable();
+		// printCommandTable();
 		// printf("CMD: %s ARGS: ", commandTable[currentCommand].commandName);
 		// for(i=0; i <= length;++i)
 			//printf("%s ", tempArgs[i]);
@@ -1144,9 +1144,17 @@ void processPipes() {
 		}
 		else if(pid == 0) {	// child
 			
-			if( numPipes == 0 )
-			{}
+			//if first command,
+				//setup input redirection, if applicable
+
+			//...
+			// call open, returns file desciprtor
+			// dup2(fd_in, STDIN_FILENO);
+			// dup2(STDIN_FILENO, STDERR_FILENO)
+			if( numPipes == 0 ) {
 				//do nothing
+			}
+				
 			else if(currentCommand == 0) {
 				printf("firstCommand\n");
 				dup2(pipeSend[1], STDOUT_FILENO);
@@ -1175,8 +1183,8 @@ void processPipes() {
 		pipeReceive[1] = pipeSend[1];
 		
 	}
-	wait();
-
+	wait();*/
+/******************************************* end ********************************/
 /*	if(infile != NULL) {
 		in = fopen(infile, "r");
 		fd_in = fileno(in);
