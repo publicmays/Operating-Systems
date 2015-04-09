@@ -1020,8 +1020,8 @@ void initializeCommandTable() {
 void printCommandTable() {
 	int i = 0, j = 0;
 	while(commandTable[i].commandName != NULL) {
-		//printf("%s | ", commandTable[i].commandName);
-		//printf("%d", commandTable[i].numArgs);
+		printf("%s | ", commandTable[i].commandName);
+		printf("%d", commandTable[i].numArgs);
 		for(j; j < commandTable[i].numArgs; ++j) {
 			printf("%d - %s ",commandTable[i].numArgs, commandTable[i].args[j]);	
 		}
@@ -1102,57 +1102,78 @@ void processPipes() {
 
 	int currentCommand = 0;
 	int pid;
-	int pipeArray[2];
-	pipe(pipeArray);
 
-	
+
 
 	for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+		int pipeReceive[2];
+		int pipeSend[2];
+
+		printf("currentCommand: %d. numPipes: %d\n", currentCommand, numPipes);
+
+		// if you're not the ending command, you're not creating a new pipe
+		if(currentCommand != numPipes) {
+			// create sending pipe
+			pipe(pipeSend);
+		}
 		int length = commandTable[currentCommand].numArgs+1;
 	
 		char* tempArgs[length];
 		tempArgs[0] = commandTable[currentCommand].commandName;
+		
+		// printf("CMD: %s ARGS: ", commandTable[currentCommand].commandName);
 		for(i=0; i < commandTable[currentCommand].numArgs; ++i) {
-			tempArgs[i+1] = commandTable[currentCommand].args[i];
-		}
+			// printf("%s ", commandTable[currentCommand].args[i] );
+			tempArgs[i+1] = commandTable[currentCommand].args[i];		}
+		printf( "\n" );
+		printCommandTable();
+		// printf("CMD: %s ARGS: ", commandTable[currentCommand].commandName);
+		// for(i=0; i <= length;++i)
+			//printf("%s ", tempArgs[i]);
+		// printf( "\n" );
 
-		//for(i=0; i < length;++i)
-		//	printf("%s\n", tempArgs[i]);
 		
 		pid = fork();
 	
 		if(pid > 0) {
-			close(pipeArray[0]);
-			close(pipeArray[1]);
+			close(pipeReceive[0]);
+			close(pipeReceive[1]);
 		}
 		else if(pid < 0) {
 			printf("Error pid is negative\n");
 		}
-		else if(pid == 0) {
-			printf("a\n");
-			if(currentCommand == 0) {
+		else if(pid == 0) {	// child
+			
+			if( numPipes == 0 )
+			{}
+				//do nothing
+			else if(currentCommand == 0) {
 				printf("firstCommand\n");
-				dup2(pipeArray[1], STDOUT_FILENO);
-				close(pipeArray[0]);
+				dup2(pipeSend[1], STDOUT_FILENO);
+				close(pipeSend[0]);
 			}
 			else if(currentCommand == numPipes) {
 				printf("lastCommand\n");
-				dup2(pipeArray[0], STDIN_FILENO);
-				close(pipeArray[1]);
+				dup2(pipeReceive[0], STDIN_FILENO);
+				close(pipeReceive[1]);
 			}
 			else {
 				printf("middleCommand\n");
-				dup2(pipeArray[0], STDIN_FILENO);
-				dup2(pipeArray[1], STDOUT_FILENO);
-				close(pipeArray[0]);
-				close(pipeArray[1]);
+				dup2(pipeReceive[0], STDIN_FILENO);
+				dup2(pipeSend[1], STDOUT_FILENO);
+				// CLOSING IN CHILD
+				close(pipeSend[0]);
+				close(pipeReceive[1]);
 			}
-
-			execvp(commandTable[currentCommand].commandName, tempArgs);
+		
+			int errorCode = execvp(commandTable[currentCommand].commandName, tempArgs);
+			
 		}
-		else {
-			printf("else\n");
-		}
+		// shoft pipes over for next iteration
+		// in parent
+		pipeReceive[0] = pipeSend[0];
+		pipeReceive[1] = pipeSend[1];
+		
 	}
 	wait();
 
