@@ -37,7 +37,7 @@ static char environmentVariableSyntax[3];
 // this checks word[0], word[1], word[length-1] to compare to ${_}
 char possibleEnvironmentTokens[3];
 char* environmentExpansionVariables[MAXARGS];
-
+char* tempArgs[MAXARGS];
 
 
 /********* Externs - End *********/
@@ -67,6 +67,7 @@ void shell_init() {
 	initializeVariableTable();
 	initializeCurrentArgs();
 	initializeCommandTable();
+	initializeTempArgs();
 
 	
 	/* Initialize all our tables and variables */
@@ -102,7 +103,7 @@ int getCommand() {
 	initializeEnvironmentExpansionVariables();
 	initializeCurrentArgs();
 	initializeCommandTable();
-	
+	initializeTempArgs();
 	if(yyparse() != 0) {
 		// unsuccessfull
 		// understand_errors(); // YYABORT - 1
@@ -1115,40 +1116,31 @@ void processPipes() {
 
 
 	for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+		initializeTempArgs();
 		int pipeReceive[2];
 		int pipeSend[2];
-
-		// printf("currentCommand: %d. numPipes: %d\n", currentCommand, numPipes);
-
 		// if you're not the ending command, you're not creating a new pipe
 
 		if(currentCommand != numPipes) {
-
 			// create sending pipe
 			pipe(pipeSend);
 		}
 
-		int length = commandTable[currentCommand].numArgs+2;
-		
-		char* tempArgs[length];
-
 		tempArgs[0] = commandTable[currentCommand].commandName;
 		
-		//printf("numArgs : %d", commandTable[currentCommand].numArgs);
-		// printf("CMD: %s ARGS: ", commandTable[currentCommand].commandName);
-
 		for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
-			if(i == commandTable[currentCommand].numArgs) {
+			if(i == commandTable[currentCommand].numArgs)
+			{
 				tempArgs[i+1] = NULL;
 			}
-			else tempArgs[i+1] = commandTable[currentCommand].args[i];
-			//printf("%s ", commandTable[currentCommand].args[i] );
+			else 
+				tempArgs[i+1] = commandTable[currentCommand].args[i];
 		}
-		printf( "\n" );
-		
-
-		/* for(i=0; i < length;++i)
+		/*i = 0;
+		while(tempArgs[i] != NULL) {
 			printf("TempArgs : %s ", tempArgs[i]);
+			++i;
+		}
 		 printf( "\n");*/
 
 		pid = fork();
@@ -1191,15 +1183,17 @@ void processPipes() {
 				close(pipeReceive[1]);
 			}
 			int errorCode = execvp(commandTable[currentCommand].commandName, tempArgs);
+			printf("%d", errorCode);
 			exit(0);
-			wait();
+			wait(pid, NULL, 0);
 		}
 		// shoft pipes over for next iteration
 		// in parent
 		pipeReceive[0] = pipeSend[0];
 		pipeReceive[1] = pipeSend[1];
 		
-	}
+	} 
+	//wait(pid, NULL, 0);
 /******************************************* end ********************************/
 /*	if(infile != NULL) {
 		in = fopen(infile, "r");
@@ -1336,3 +1330,9 @@ char * getOutputFile() {
 		}
 	}
 	*/
+void initializeTempArgs() {
+	int i = 0;
+	for(i; i < MAXARGS; ++i) {
+		tempArgs[i] = NULL;	
+	}	
+}

@@ -70,6 +70,7 @@ void initializeCurrentArgs();
 void initializeVariableTable();
 void initializeFileRedirection();
 void initializeCommandTable();
+void initializeTempArgs();
 
 /* yyparse*/
 int yyparse();
@@ -117,6 +118,7 @@ void understand_errors();
 void init_scanner_and_parse();
 
 /* Pipelining */
+void buildTempArgs();
 void processPipes();
 void buildCommandTable();
 void printCommandTable();
