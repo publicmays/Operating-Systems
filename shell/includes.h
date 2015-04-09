@@ -1065,24 +1065,27 @@ void processPipes() {
 	/*********** build command table ***********/
 	for(i = 0; i < entireLineLength(); i++)
 	{	
+		
 		if(commandCount == 0) {
 			commandTable[pipeCounter].commandName = entireLine[i];
 			++commandCount;
-		
 		}
 		else if(strcmp(entireLine[i], "|") == 0) {
 			commandTable[pipeCounter].numArgs = numArgs;
 			numArgs = 0;
 			commandCount = 0;
 			++pipeCounter;
-			if(pipeCounter == numPipes) {
-				commandTable[pipeCounter].numArgs = numArgs;
-			}
+			printf("pipeCounter : %d , i : %d\n", pipeCounter, i);
+			
 		}
 		else {
-			commandTable[pipeCounter].args[numArgs] = entireLine[i];	
+			
+			commandTable[pipeCounter].args[numArgs] = entireLine[i];
+			//printf("%s ", commandTable[pipeCounter].args[numArgs]);	
 			++numArgs;
 		}	
+	
+		
 	}
 	printCommandTable();
 
