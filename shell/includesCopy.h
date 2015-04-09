@@ -130,7 +130,7 @@ void processCommand() {
 	
 	processAlias();
 	processEnvironmentVariablesExpansion();
-
+	// processPipes();
 	
 	int builtin = isBuiltInCommand();
 	
@@ -400,11 +400,39 @@ void getCurrentDirectory(){
 
 /* Handles commands except built-in */
 void execute_it(){
-	processPipes();
-	// pid_t pid[MAX_PIPES];
+	int i = 0; 
 
+	while(entireLine[i+1] != NULL) {
+		entireLine2[i] = entireLine[i];
+		++i;
+	}
 
-		/* ONE COMMAND EXECVP WORKS *******************************
+	pid_t pid[MAX_PIPES];
+/*
+	int c = 0;
+	int comds = 2;
+	for(c; c < comds; c++) {
+		switch(pid[c] = fork()) {
+			case 0:
+				switch(c) {
+					case 0:
+						close(STDOUT_FILENO);
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						close(commandTable[currPipe+1].io[0]);
+						in_redir();
+					case comds - 1:
+						close(STDIN_FILENO);
+						dup2(commandTable[currPipe].io[0], STDIN_FILENO);
+						out_redir();
+					default:
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						close(commandTable[currPipe+1].io[0]);
+				}
+		}
+	}*/
+
+		/* ONE COMMAND EXECVP WORKS *******************************/
 
 	pid[0] = fork();
 
@@ -427,8 +455,135 @@ void execute_it(){
 	} 
 	wait();
 
-	*******************************************************************************/
+	/*******************************************************************************/
 
+	
+
+	/*FILE *in = NULL;
+	FILE *out = NULL;
+
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
+
+	char *infile = "input.txt";
+	char *outfile = "output.txt";
+
+	if(infile != NULL) {
+		in = fopen(infile, "r");
+		fd_in = fileno(in);
+	}
+
+	if(outfile != NULL) {
+		out = fopen(outfile, "w+");
+		fd_out = fileno(out);
+	}
+
+	pid_t processID = fork();
+	if(processID == 0) {
+		if(fd_in != STDIN_FILENO) {
+			dup2(fd_in, STDIN_FILENO);
+			dup2(fd_in, STDERR_FILENO);
+		}
+		if(fd_out != STDOUT_FILENO) {
+			dup2(fd_out, STDOUT_FILENO);
+		}
+
+		while(entireLine[i+1] != NULL) {
+			entireLine2[i] = entireLine[i];
+			++i;
+		}
+
+		int returnVal = execvp(entireLine[0], entireLine2);
+
+		exit(0);
+	}
+	wait();*/
+
+	/*char* executableLine[entireLineLength() - 1];
+
+	pid_t pids[MAX_COMMANDS];
+
+	int i = 0;
+	for(i; i < entireLineLength() -1; i++) {
+		executableLine[i] = entireLine[i+1];
+	}
+	fork();
+	execvp(entireLine[0], executableLine);*/
+	/*
+	switch(pids[i] = fork()) {
+		case -1:
+			printf("Failed to fork");
+			break;
+		case 0:
+			if(lastPipe >= 0) {
+				//Pipe to read from
+				dup2(lastPipe, STDIN_FILE_ID);
+				close(lastPip);
+			}
+			if(currPipe[WRITE_END] >= 0) {
+				//Pipe to right to
+				dup2(currPipe[WRITE_END], STDOUT_FILE_ID);
+				close(currPipe[WRITE_END]);
+				close(currPipe[READ_END]);
+			}
+			executeCommand(command);
+			exit(0);
+			break;
+		default:
+			if(currPipe[WRITE_END] >= 0)
+				close(currPipe[WRITE_END]);
+			if(lastPipe >= 0)
+				close(lastPipe);
+
+			lastPipe = currPipe[READ_END];
+			currPipe[READ_END] = -1;
+			currPipe[WRITE_END] = -1;
+			break;
+	}*/
+
+	// check command accessability & executability
+	/*if(!Executable()) { }
+	
+	// check io file existance in case of io redirection
+	if(check_in_file() == SYSERR){ }
+	if(check_out_file() == SYSERR) { }
+
+	// build up the pipeline
+	for(c = 0; c < currcmd; ++c) {
+		// prep args
+		if( ... ) {argv }
+		else { }
+		switch(pid == fork() ) { // fork process returns twice 
+			case 0 : 
+			switch(whichCommand(c)) {
+				case FIRST:
+					if(close(1) == SYSCALLER) {
+
+					}
+					if(dup(comtab[c].outfd)!= 1) {...}
+					if(close(comtab[c+1].infd) == SYSCALLER) {...}
+					in_redir();
+					break;
+				case LAST:
+					if(close(0) == SYSCALLER) {
+
+					}
+					if(dup(comtab[c].infd) != 0) { ... }
+					out_redir();
+					break;
+				case THE_ONLY_ONE:
+					in_redir();
+					out_redir();
+					break;
+				default:
+					if(dup2(comtab[c].outfd, 1) == SYSCALLER) {...}
+					if(dup2(comtab[c].infd, 0) == SYSCALLER) {...}
+					if(close(comtab[c+1].infd) == SYSCALLER) {...}
+					break;
+			}
+		}
+	}
+*/
 }
 /* Handles all built in commands */
 void do_it(int builtin){
@@ -889,16 +1044,24 @@ void printPrompt() {
 
 void processPipes() {
 	int i = 0;
+	int append = -1;
 	int numArgs = 0;
 	int numPipes = 0;
 	int pipeCounter = 0;
-	int commandCount = 0; 
-	int currentCommand = 0;
-	int _pid;
+	int commandCount = 0;
+	
+	FILE * in = NULL;
+	FILE *out = NULL;
 
-	while(entireLine[i+1] != NULL) {
-		entireLine2[i] = entireLine[i];
-		++i;
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
+
+	char *infile = NULL;
+	char *outfile = NULL;
+	/* find numPipes */
+	for(i; i < entireLineLength(); ++i) {
+		if(strcmp(entireLine[i], "|") == 0)
+			++numPipes;
 	}
 	if(numPipes == 0){
 		commandTable[0].commandName = entireLine[0];
@@ -907,6 +1070,7 @@ void processPipes() {
 	/*********** build command table ***********/
 	for(i = 0; i < entireLineLength(); i++)
 	{	
+		
 		if(commandCount == 0) {
 			commandTable[pipeCounter].commandName = entireLine[i];
 			++commandCount;
@@ -920,33 +1084,140 @@ void processPipes() {
 				commandTable[pipeCounter].numArgs = entireLineLength() - i - 2;
 			}
 			//printf("pipeCounter : %d , i : %d\n", pipeCounter, i);
+			
 		}
 		else {
+			
 			commandTable[pipeCounter].args[numArgs] = entireLine[i];
 			//printf("Args for pipe %d: %s\n", pipeCounter, commandTable[pipeCounter].args[numArgs]);	
 			++numArgs;
 		}	
+	
+		
 	}
 	// printCommandTable();
-	initializeTempArgs();
-	tempArgs[0] = commandTable[currentCommand].commandName;
-		
-	for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
-		if(i == commandTable[currentCommand].numArgs)
-		{
-			tempArgs[i+1] = NULL;
+
+	/*for(i; i < entireLineLength(); i++) {
+		if(strcmp(entireLine[i], "<") == 0)
+			infile = entireLine[i+1];
+		if(strcmp(entireLine[i], ">") == 0) {
+			outfile = entireLine[i+1];
+			append = 0;
 		}
-		else 
-			tempArgs[i+1] = commandTable[currentCommand].args[i];
-	}
+		if(strcmp(entireLine[i], ">>") == 0) {
+			outfile = entireLine[i+1];
+			append = 1;
+		}
+	}*/
+/************************************* START *****************************************/
+	int currentCommand = 0;
 	int pid;
 
-	pid = fork();
-	if(pid == 0) {
-		execvp(commandTable[currentCommand].commandName, tempArgs);	
-		exit(0);
+
+
+	//for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+		initializeTempArgs();
+		int pipeReceive[2];
+		int pipeSend[2];
+		// if you're not the ending command, you're not creating a new pipe
+		if(currentCommand != numPipes) {
+			// create sending pipe
+			pipe(pipeSend);
+		}
+/*
+		tempArgs[0] = commandTable[currentCommand].commandName;
+		
+		for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
+			if(i == commandTable[currentCommand].numArgs)
+			{
+				tempArgs[i+1] = NULL;
+			}
+			else 
+				tempArgs[i+1] = commandTable[currentCommand].args[i];
+		}*/
+		/*i = 0;
+		while(tempArgs[i] != NULL) {
+			printf("TempArgs : %s ", tempArgs[i]);
+			++i;
+		}
+		 printf( "\n");*/
+
+		pid = fork();
+		if(pid > 0) {
+			close(pipeReceive[0]);
+			close(pipeReceive[1]);
+		}
+		else if(pid < 0) {
+			printf("Error pid is negative\n");
+		}
+		else if(pid == 0) {	// child
+			
+			//if first command,
+				//setup input redirection, if applicable
+
+			//...
+			// call open, returns file desciprtor
+			// dup2(fd_in, STDIN_FILENO);
+			// dup2(STDIN_FILENO, STDERR_FILENO)
+			if( numPipes == 0 ) {
+				//do nothing
+			}
+				
+			else if(currentCommand == 0) {
+				printf("firstCommand\n");
+				dup2(pipeSend[1], STDOUT_FILENO);
+				close(pipeSend[0]);
+			}
+			else if(currentCommand == numPipes) {
+				printf("lastCommand\n");
+				dup2(pipeReceive[0], STDIN_FILENO);
+				close(pipeReceive[1]);
+			}
+			else {
+				printf("middleCommand\n");
+				dup2(pipeReceive[0], STDIN_FILENO);
+				dup2(pipeSend[1], STDOUT_FILENO);
+				// CLOSING IN CHILD
+				close(pipeSend[0]);
+				close(pipeReceive[1]);
+			}
+			char* s[1];
+			s[0] = "echo";
+			char* t[2];
+			t[0] = "echo";
+			t[1] = "hello"; 
+			commandTable[currentCommand].commandName = "echo";
+			tempArgs[0] = "echo";
+			tempArgs[1] = "hello";
+			int errorCode = execvp(commandTable[currentCommand].commandName, tempArgs);
+			printf("%d", errorCode);
+			exit(0);
+			wait(pid, NULL, 0);
+		}
+		// shoft pipes over for next iteration
+		// in parent
+		pipeReceive[0] = pipeSend[0];
+		pipeReceive[1] = pipeSend[1];
+		
+	// } 
+	//wait(pid, NULL, 0);
+/******************************************* end ********************************/
+/*	if(infile != NULL) {
+		in = fopen(infile, "r");
+		fd_in = fileno(in);
 	}
-	wait();
+
+	if(outfile != NULL && append == 0) {
+		out = fopen(outfile, "w+");
+		fd_out = fileno(out);
+	}
+	else if(outfile != NULL && append == 1) {
+		out = fopen(outfile, "a+");
+		fd_out = fileno(out);
+	}
+*/
+
+
 }
 /*
 void in_redir() {
