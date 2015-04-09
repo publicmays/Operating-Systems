@@ -131,7 +131,6 @@ void processCommand() {
 	processAlias();
 	processEnvironmentVariablesExpansion();
 
-	
 	int builtin = isBuiltInCommand();
 	
 	if(builtin != -1) {
@@ -886,9 +885,12 @@ void printPrompt() {
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
 }
 
+/************************** PROCESS PIPES START ****************/
+
 
 void processPipes() {
 	int i = 0;
+	int append = -1;
 	int numArgs = 0;
 	int numPipes = 0;
 	int pipeCounter = 0;
@@ -896,9 +898,19 @@ void processPipes() {
 	int currentCommand = 0;
 	int pid;
 
-	while(entireLine[i+1] != NULL) {
-		entireLine2[i] = entireLine[i];
-		++i;
+	/*FILE * in = NULL;
+	FILE *out = NULL;
+
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
+
+	char *infile = NULL;
+	char *outfile = NULL;
+*/	
+/* find numPipes */
+	for(i; i < entireLineLength(); ++i) {
+		if(strcmp(entireLine[i], "|") == 0)
+			++numPipes;
 	}
 	if(numPipes == 0){
 		commandTable[0].commandName = entireLine[0];
@@ -934,11 +946,13 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 	int pipeReceive[2];
 	int pipeSend[2];
 	tempArgs[0] = commandTable[currentCommand].commandName;
-	// if you're not the ending command, you're not creating a new pipe
+	// if you're not the ending command, you're creating a new pipe
 	if(currentCommand != numPipes) {
 		// create sending pipe
 		pipe(pipeSend);
 	}
+	tempArgs[0] = commandTable[currentCommand].commandName;
+		
 	for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
 		if(i == commandTable[currentCommand].numArgs)
 		{
@@ -957,39 +971,45 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 	else if(pid < 0) {
 		printf("Error pid is negative\n");
 	}
-	if(pid == 0) {
+	else if(pid == 0) {
 		if( numPipes == 0 ) {
 			//do nothing
 		}
 		else if(currentCommand == 0) {
-				printf("firstCommand\n");
+				// printf("firstCommand\n");
 				dup2(pipeSend[1], STDOUT_FILENO);
 				close(pipeSend[0]);
 		}
 		else if(currentCommand == numPipes) {
-				printf("lastCommand\n");
+				// printf("lastCommand\n");
 				dup2(pipeReceive[0], STDIN_FILENO);
 				close(pipeReceive[1]);
+				
 		}
 		else {
-			printf("middleCommand\n");
+			// printf("middleCommand\n");
 			dup2(pipeReceive[0], STDIN_FILENO);
 			dup2(pipeSend[1], STDOUT_FILENO);
 			// CLOSING IN CHILD
 			close(pipeSend[0]);
 			close(pipeReceive[1]);
 		}
-		execvp(commandTable[currentCommand].commandName, tempArgs);	
-		exit(0);
+		int status = execvp(commandTable[currentCommand].commandName, tempArgs);	
+		exit(EXIT_FAILURE);
+		
+		// wait(&status);
 	}
 	// shoft pipes over for next iteration
 	// in parent
 	pipeReceive[0] = pipeSend[0];
 	pipeReceive[1] = pipeSend[1];
 } /* End of For Loop */ 
-	wait(pid, NULL, 0);
+
+	waitpid(pid, NULL, 0);
 }
 
+
+/***********************  PROCESS PIPES END ******************/
 void initializeTempArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {

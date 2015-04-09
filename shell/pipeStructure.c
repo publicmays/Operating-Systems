@@ -138,14 +138,7 @@ void processPipes() {
 				close(pipeSend[0]);
 				close(pipeReceive[1]);
 			}
-			char* s[1];
-			s[0] = "echo";
-			char* t[2];
-			t[0] = "echo";
-			t[1] = "hello"; 
-			commandTable[currentCommand].commandName = "echo";
-			tempArgs[0] = "echo";
-			tempArgs[1] = "hello";
+		
 			int errorCode = execvp(commandTable[currentCommand].commandName, tempArgs);
 			printf("%d", errorCode);
 			exit(0);

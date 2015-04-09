@@ -1,113 +1,116 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
 
+void processPipes() {
+	int i = 0;
+	int append = -1;
+	int numArgs = 0;
+	int numPipes = 0;
+	int pipeCounter = 0;
+	int commandCount = 0; 
+	int currentCommand = 0;
+	int pid;
 
-void strrev(char *p)
-{
-  char *q = p;
-  while(q && *q) ++q;
-  for(--q; p < q; ++p, --q)
-    *p = *p ^ *q,
-    *q = *p ^ *q,
-    *p = *p ^ *q;
-}
+	FILE * in = NULL;
+	FILE *out = NULL;
 
-int main (int argc, char **argv)
-{
-	pid_t pid[3]; 				//list of processes
-	int ab[2], bc[2], ca[2]; 	//create as many pipes as you need;
-	//init pipes
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
 
-	pipe(ab);
-	pipe(bc);
-	pipe(ca);
-
-	//fork child
-	pid[0]=fork(); //Fork first process
-	if(pid[0] == 0) //
-	{
-			
-
-	        
-	        
-			
-			char buffer[100];
-
-		    fgets(buffer, sizeof(buffer), stdin);
-		    int len = strlen(buffer);
-
-		    if (write(ab[1], buffer, len) != len)
-		        printf("Failed to write to children");
-		    if (read(ca[0], buffer, len) != len)
-		        printf("Failed to read from children");
-		    
-		    printf("%.*s", len, buffer);
-	        
-	        for(int i=0; i<2; i++)
-	        {close(ab[i]); close(bc[i]); close(ca[i]); }
-
-	        //dup2(STDOUT_FILENO, ab[1]);
-	        //printf("%s", str2);
-	        // quit so your child doesn't end up in the main program
-	        exit(0);
+	char *infile = NULL;
+	char *outfile = NULL;
+	/* find numPipes */
+	for(i; i < entireLineLength(); ++i) {
+		if(strcmp(entireLine[i], "|") == 0)
+			++numPipes;
 	}
-
-	pid[1]=fork();
-	if(pid[1] == 0)
-	{
-	        
-	        // Process B reads from process A
-	        dup2(ab[0], STDIN_FILENO);
-	        // Process B writes to process C
-	        dup2(bc[1], STDOUT_FILENO);
-	        
-	        for(int i=0; i<2; i++)
-	        { close(ab[i]); close(bc[i]); close(ca[i]); }
-
-	        char str[100];
-	        scanf ("%[^\n]%*c", str);
-	        strrev(str);
-	        printf("%s\n", str);
-
-	        exit(0);
+	if(numPipes == 0){
+		commandTable[0].commandName = entireLine[0];
+		commandTable[0].numArgs = entireLineLength() - 1;
 	}
-
-	pid[2]=fork();
-	if(pid[2] == 0)
-	{
-	        
-	        // Process C reads from process B
-	        dup2(bc[0], STDIN_FILENO);
-	        // Process C writes to process A
-	        dup2(ca[1], STDOUT_FILENO);
-	        for(int i=0; i<2; i++)
-	        { close(ab[i]); close(bc[i]); close(ca[i]); }
-	    	char str[100];        
-	        scanf ("%[^\n]%*c", str);
-	        int i = 0;
-			while (str[i]){
-			    
-			    str[i] = toupper(str[i]);
-			    i++;
+	/*********** build command table ***********/
+	for(i = 0; i < entireLineLength(); i++)
+	{	
+		if(commandCount == 0) {
+			commandTable[pipeCounter].commandName = entireLine[i];
+			++commandCount;
+		}
+		else if(strcmp(entireLine[i], "|") == 0) {
+			commandTable[pipeCounter].numArgs = numArgs;
+			numArgs = 0;
+			commandCount = 0;
+			++pipeCounter;
+			if(pipeCounter == numPipes) {
+				commandTable[pipeCounter].numArgs = entireLineLength() - i - 2;
 			}
-
-	        
-	        printf("%s\n", str);
-	        
-	        exit(0);
+			//printf("pipeCounter : %d , i : %d\n", pipeCounter, i);
+		}
+		else {
+			commandTable[pipeCounter].args[numArgs] = entireLine[i];
+			//printf("Args for pipe %d: %s\n", pipeCounter, commandTable[pipeCounter].args[numArgs]);	
+			++numArgs;
+		}	
 	}
+	// printCommandTable();
+/* Start of For Loop */
+for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+	initializeTempArgs();
+	int pipeReceive[2];
+	int pipeSend[2];
+	tempArgs[0] = commandTable[currentCommand].commandName;
+	// if you're not the ending command, you're not creating a new pipe
+	if(currentCommand != numPipes) {
+		// create sending pipe
+		pipe(pipeSend);
+	}
+	tempArgs[0] = commandTable[currentCommand].commandName;
+		
+	for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
+		if(i == commandTable[currentCommand].numArgs)
+		{
+			tempArgs[i+1] = NULL;
+		}
+		else 
+			tempArgs[i+1] = commandTable[currentCommand].args[i];
+	}
+	
 
-	
-	for(int i=0; i<2; i++)
-	{ close(ab[i]); close(bc[i]); close(ca[i]); }
+	pid = fork();
+	if(pid > 0) {
+		close(pipeReceive[0]);
+		close(pipeReceive[1]);
+	}
+	else if(pid < 0) {
+		printf("Error pid is negative\n");
+	}
+	else if(pid == 0) {
+		if( numPipes == 0 ) {
+			//do nothing
+		}
+		else if(currentCommand == 0) {
+				printf("firstCommand\n");
+				dup2(pipeSend[1], STDOUT_FILENO);
+				close(pipeSend[0]);
+		}
+		else if(currentCommand == numPipes) {
+				printf("lastCommand\n");
+				dup2(pipeReceive[0], STDIN_FILENO);
+				close(pipeReceive[1]);
+		}
+		else {
+			printf("middleCommand\n");
+			dup2(pipeReceive[0], STDIN_FILENO);
+			dup2(pipeSend[1], STDOUT_FILENO);
+			// CLOSING IN CHILD
+			close(pipeSend[0]);
+			close(pipeReceive[1]);
+		}
+		execvp(commandTable[currentCommand].commandName, tempArgs);	
+		exit(0);
+	}
+	// shoft pipes over for next iteration
+	// in parent
+	pipeReceive[0] = pipeSend[0];
+	pipeReceive[1] = pipeSend[1];
+} /* End of For Loop */ 
 
-	
-    wait();
-    wait();
-    wait();
-    
-	
-	//How can you implement this logic for n processes?
-	//This will help you implement piped commands on your shell
+	wait(pid, NULL, 0);
 }
