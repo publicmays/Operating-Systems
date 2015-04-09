@@ -10,12 +10,12 @@ for(i; i < numCommands; ++i) {
 		// advance current command
 	}
 
-	if(currentCommand == firstCommand) {
+	else if(currentCommand == firstCommand) {
 		dup2(pipe[1], STDOUT_FILENO);
 		close(pipe[0]);
 	}
 
-	if(currentCommand == lastCommand) {
+	else if(currentCommand == lastCommand) {
 		dup2(pipe[0], STDIN_FILENO);
 		close(pipe[1]);
 	}

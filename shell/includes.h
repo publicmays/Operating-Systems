@@ -1105,58 +1105,22 @@ void processPipes() {
 		}
 	}*/
 
-	int currPipe = 0;
-	for(currPipe; currPipe <= numPipes; currPipe++) {
-		pipe(commandTable[currPipe].io);
-		printf("Piped: %d\n", currPipe);
+	int currentCommand = 0;
+	int pid = fork();
+	int pipeArray[2];
+	pipe(pipeArray);
 
-		if(currPipe == 0 && numPipes == 0) {
-			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-			exit(0);
+	for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+		if(pid > 0) {
+			close(pipeArray[0]);
+			close(pipeArray[1]);
 		}
-		if(currPipe == 0 && numPipes > 0) {
-			printf("1");
-			int pid = fork();
-			if(pid == 0) {
-				printf("Its the first pipe!\n");
-				int i = 0; 
+		else if(pid < 0) {
+			printf("Error pid is negative\n");
+		}
+		else if(pid == 0) {
 
-				while(entireLine[i+1] != NULL) {
-					entireLine2[i] = entireLine[i];
-					++i;
-				}
-
-				//close(STDOUT_FILENO);
-				dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-				//close(commandTable[currPipe+1].io[0]);
-				execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-				
-				exit(0);
-			}
-			wait();
-			//in_redir();
 		}
-		if(currPipe == numPipes) {
-			printf("2");
-			printf("Its the last pipe!\n");
-			//close(STDIN_FILENO);
-			dup2(commandTable[currPipe-1].io[0], STDIN_FILENO);
-			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-			exit(0);
-			//out_redir();
-		}
-		wait();
-		/*
-		else if(numPipes == 1) {
-			//in_redir();
-			//out_redir();
-		}
-		else {
-			printf("Middle pipe!\n");
-			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-			close(commandTable[currPipe+1].io[0]);
-		}*/
 	}
 
 	if(infile != NULL) {
@@ -1238,3 +1202,59 @@ char * getOutputFile() {
 	return outfile;
 }
 */
+
+/******************* currPIpe ***************/
+/* int currPipe = 0;
+	for(currPipe; currPipe <= numPipes; currPipe++) {
+		pipe(commandTable[currPipe].io);
+		printf("Piped: %d\n", currPipe);
+
+		if(currPipe == 0 && numPipes == 0) {
+			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
+			exit(0);
+		}
+		if(currPipe == 0 && numPipes > 0) {
+			printf("1");
+			int pid = fork();
+			if(pid == 0) {
+				printf("Its the first pipe!\n");
+				int i = 0; 
+
+				while(entireLine[i+1] != NULL) {
+					entireLine2[i] = entireLine[i];
+					++i;
+				}
+
+				//close(STDOUT_FILENO);
+				dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+				//close(commandTable[currPipe+1].io[0]);
+				execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
+				
+				exit(0);
+			}
+			wait();
+			//in_redir();
+		}
+		if(currPipe == numPipes) {
+			printf("2");
+			printf("Its the last pipe!\n");
+			//close(STDIN_FILENO);
+			dup2(commandTable[currPipe-1].io[0], STDIN_FILENO);
+			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
+			exit(0);
+			//out_redir();
+		}
+		wait();
+		
+		else if(numPipes == 1) {
+			//in_redir();
+			//out_redir();
+		}
+		else {
+			printf("Middle pipe!\n");
+			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+			close(commandTable[currPipe+1].io[0]);
+		}
+	}
+	*/
