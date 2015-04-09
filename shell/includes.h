@@ -1106,11 +1106,15 @@ void processPipes() {
 	}*/
 
 	int currentCommand = 0;
-	int pid = fork();
+	int pid;
 	int pipeArray[2];
 	pipe(pipeArray);
 
+	
+
 	for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+		pid = fork();
+		printf("%d \n", pid);
 		if(pid > 0) {
 			close(pipeArray[0]);
 			close(pipeArray[1]);
@@ -1119,11 +1123,33 @@ void processPipes() {
 			printf("Error pid is negative\n");
 		}
 		else if(pid == 0) {
-
+			printf("a\n");
+			if(currentCommand == 0) {
+				printf("firstCommand\n");
+				dup2(pipeArray[1], STDOUT_FILENO);
+				close(pipeArray[0]);
+			}
+			else if(currentCommand == numPipes) {
+				printf("lastCommand\n");
+				dup2(pipeArray[0], STDIN_FILENO);
+				close(pipeArray[1]);
+			}
+			else {
+				printf("middleCommand\n");
+				dup2(pipeArray[0], STDIN_FILENO);
+				dup2(pipeArray[1], STDOUT_FILENO);
+				close(pipeArray[0]);
+				close(pipeArray[1]);
+			}
+			execvp(commandTable[currentCommand].commandName, commandTable[currentCommand].args);
+		}
+		else {
+			printf("else\n");
 		}
 	}
+	wait();
 
-	if(infile != NULL) {
+/*	if(infile != NULL) {
 		in = fopen(infile, "r");
 		fd_in = fileno(in);
 	}
@@ -1136,7 +1162,7 @@ void processPipes() {
 		out = fopen(outfile, "a+");
 		fd_out = fileno(out);
 	}
-
+*/
 
 
 }
