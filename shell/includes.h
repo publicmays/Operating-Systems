@@ -894,7 +894,7 @@ void processPipes() {
 	int pipeCounter = 0;
 	int commandCount = 0; 
 	int currentCommand = 0;
-	int _pid;
+	int pid;
 
 	while(entireLine[i+1] != NULL) {
 		entireLine2[i] = entireLine[i];
@@ -928,9 +928,17 @@ void processPipes() {
 		}	
 	}
 	// printCommandTable();
+/* Start of For Loop */
+for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 	initializeTempArgs();
+	int pipeReceive[2];
+	int pipeSend[2];
 	tempArgs[0] = commandTable[currentCommand].commandName;
-		
+	// if you're not the ending command, you're not creating a new pipe
+	if(currentCommand != numPipes) {
+		// create sending pipe
+		pipe(pipeSend);
+	}
 	for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
 		if(i == commandTable[currentCommand].numArgs)
 		{
@@ -939,133 +947,49 @@ void processPipes() {
 		else 
 			tempArgs[i+1] = commandTable[currentCommand].args[i];
 	}
-	int pid;
+	
 
 	pid = fork();
+	if(pid > 0) {
+		close(pipeReceive[0]);
+		close(pipeReceive[1]);
+	}
+	else if(pid < 0) {
+		printf("Error pid is negative\n");
+	}
 	if(pid == 0) {
+		if( numPipes == 0 ) {
+			//do nothing
+		}
+		else if(currentCommand == 0) {
+				printf("firstCommand\n");
+				dup2(pipeSend[1], STDOUT_FILENO);
+				close(pipeSend[0]);
+		}
+		else if(currentCommand == numPipes) {
+				printf("lastCommand\n");
+				dup2(pipeReceive[0], STDIN_FILENO);
+				close(pipeReceive[1]);
+		}
+		else {
+			printf("middleCommand\n");
+			dup2(pipeReceive[0], STDIN_FILENO);
+			dup2(pipeSend[1], STDOUT_FILENO);
+			// CLOSING IN CHILD
+			close(pipeSend[0]);
+			close(pipeReceive[1]);
+		}
 		execvp(commandTable[currentCommand].commandName, tempArgs);	
 		exit(0);
 	}
-	wait();
-}
-/*
-void in_redir() {
-	FILE *in = NULL;
-	int fd_in = STDIN_FILENO;
-
-	char *infile = getInputFile();
-
-	if(infile != NULL) {
-		in = fopen(infile, "r");
-		fd_in = fileno(in);
-	}
-
-	pid_t processID = fork();
-
-	if(processID == 0) {
-		if(fd_in != STDIN_FILENO) {
-			dup2(fd_in, STDIN_FILENO);
-			dup2(fd_in, STDERR_FILENO);
-		}
-		if(fd_out != STDOUT_FILENO) {
-			dup2(fd_out, STDOUT_FILENO);
-		}
-
-		int returnVal = execvp(entireLine[0], entireLine2);
-		exit(0);
-	}
-	wait();
+	// shoft pipes over for next iteration
+	// in parent
+	pipeReceive[0] = pipeSend[0];
+	pipeReceive[1] = pipeSend[1];
+} /* End of For Loop */ 
+	wait(pid, NULL, 0);
 }
 
-char * getInputFile() {
-
-	char *infile = NULL;
-
-	for(i; i < entireLineLength(); i++) {
-		if(strcmp(entireLine[i], "<") == 0)
-			infile = entireLine[i+1];
-	}
-
-	return infile;
-}
-
-
-void out_redir() {
-
-}
-
-char * getOutputFile() {
-
-	char *outfile = NULL;
-
-	for(i; i < entireLineLength(); i++) {
-		if(strcmp(entireLine[i], ">") == 0) {
-			outfile = entireLine[i+1];
-		}
-		if(strcmp(entireLine[i], ">>") == 0) {
-			outfile = entireLine[i+1];
-		}
-	}
-
-	return outfile;
-}
-*/
-
-/******************* currPIpe ***************/
-/* int currPipe = 0;
-	for(currPipe; currPipe <= numPipes; currPipe++) {
-		pipe(commandTable[currPipe].io);
-		printf("Piped: %d\n", currPipe);
-
-		if(currPipe == 0 && numPipes == 0) {
-			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-			exit(0);
-		}
-		if(currPipe == 0 && numPipes > 0) {
-			printf("1");
-			int pid = fork();
-			if(pid == 0) {
-				printf("Its the first pipe!\n");
-				int i = 0; 
-
-				while(entireLine[i+1] != NULL) {
-					entireLine2[i] = entireLine[i];
-					++i;
-				}
-
-				//close(STDOUT_FILENO);
-				dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-				//close(commandTable[currPipe+1].io[0]);
-				execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-				
-				exit(0);
-			}
-			wait();
-			//in_redir();
-		}
-		if(currPipe == numPipes) {
-			printf("2");
-			printf("Its the last pipe!\n");
-			//close(STDIN_FILENO);
-			dup2(commandTable[currPipe-1].io[0], STDIN_FILENO);
-			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-			exit(0);
-			//out_redir();
-		}
-		wait();
-		
-		else if(numPipes == 1) {
-			//in_redir();
-			//out_redir();
-		}
-		else {
-			printf("Middle pipe!\n");
-			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-			close(commandTable[currPipe+1].io[0]);
-		}
-	}
-	*/
 void initializeTempArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
