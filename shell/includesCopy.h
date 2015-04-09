@@ -1,5 +1,6 @@
 #include "define.h"
 #include <sys/types.h>
+#include <glob.h>
 /******************************* Globals *******************************/
 /* Prompt */
 static int globalReadOffset;
@@ -130,7 +131,7 @@ void processCommand() {
 	
 	processAlias();
 	processEnvironmentVariablesExpansion();
-	// processPipes();
+	//processPipes();
 	
 	int builtin = isBuiltInCommand();
 	
@@ -400,14 +401,119 @@ void getCurrentDirectory(){
 
 /* Handles commands except built-in */
 void execute_it(){
-	int i = 0; 
+	int i; 
+	int pipeCount = 0;
 
-	while(entireLine[i+1] != NULL) {
-		entireLine2[i] = entireLine[i];
-		++i;
+
+	/*Get number of pipes*/
+	for(i = 0; i < entireLineLength(); ++i)
+		if(strcmp(entireLine[i], "|") == 0)
+			pipeCount++;
+
+
+	/*Check for wildcards*/
+	char * wildCardResults[MAX_WILDCARDS];
+	int finalIndex = 0;
+
+	for(i = 0; i < entireLineLength(); i++) {
+		if(hasAsterisk(entireLine[i]) == TRUE || hasQuestionMark(entireLine[i]) == TRUE) {
+			glob_t globbuf;
+
+			if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
+				 size_t j;
+				 int count = 0;
+				 for (j = 0; j < globbuf.gl_pathc; j++) {
+				 	wildCardResults[j] = strdup(globbuf.gl_pathv[j]);
+				 	count++;
+				 }
+				 int z;
+				 for(z = 0; z < count; z++) {
+				 	entireLine2[finalIndex] = wildCardResults[z];
+				 	//printf("arg %d: %s\n", finalIndex, entireLine2[finalIndex]);
+				 	finalIndex++;
+				 }
+			}
+			globfree(&globbuf);
+		}
+		else {
+			entireLine2[finalIndex] = entireLine[i];
+			//printf("arg %d: %s\n", finalIndex, entireLine2[finalIndex]);
+			finalIndex++;
+		}
 	}
 
-	pid_t pid[MAX_PIPES];
+	i = 0;
+	while(entireLine2[i] != NULL) {
+		//printf("arg %d: %s\n", i, entireLine2[i]);
+		i++;
+	}
+	/*for(i = 0; i < wildcardCount; i++) {
+		if(pipeCount == 0) {
+		i = 0;
+		while(entireLine[i+1] != NULL) {
+			entireLine2[i] = entireLine[i];
+			++i;
+		}
+
+		pid_t pid[MAX_PIPES];
+
+		pid[0] = fork();
+
+		if(pid[0] == -1) {
+			printf("There was an error.\n");
+		}
+
+		else if(pid[0] != 0) {
+			//printf("In Parent.\n");
+		}
+
+		else {
+			//printEntireLine2();
+			int returnVal = execvp(entireLine[0], wildCardResults);
+
+			if(returnVal == -1) 
+				printf("Error executing command.\n");
+
+			exit(0);
+		} 
+		wait();
+	}
+	}*/
+
+
+	/*If no redirecting execute command*/
+	if(pipeCount == 0) {
+		i = 0;
+		/*while(entireLine[i+1] != NULL) {
+			entireLine2[i] = entireLine[i];
+			printf("2nd arg %d: %s\n", i, entireLine2[i]);
+			++i;
+		}*/
+
+		pid_t pid[MAX_PIPES];
+
+		pid[0] = fork();
+
+		if(pid[0] == -1) {
+			printf("There was an error.\n");
+		}
+
+		else if(pid[0] != 0) {
+			//printf("In Parent.\n");
+		}
+
+		else {
+			//printEntireLine2();
+			int returnVal = execvp(entireLine[0], entireLine2);
+
+			if(returnVal == -1) 
+				printf("Error executing command.\n");
+
+			exit(0);
+		} 
+		wait();
+	}
+
 /*
 	int c = 0;
 	int comds = 2;
@@ -432,7 +538,7 @@ void execute_it(){
 		}
 	}*/
 
-		/* ONE COMMAND EXECVP WORKS *******************************/
+		/* ONE COMMAND EXECVP WORKS *******************************
 
 	pid[0] = fork();
 
@@ -455,7 +561,7 @@ void execute_it(){
 	} 
 	wait();
 
-	/*******************************************************************************/
+	*******************************************************************************/
 
 	
 
@@ -1115,16 +1221,17 @@ void processPipes() {
 
 
 
-	//for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+	for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 		initializeTempArgs();
 		int pipeReceive[2];
 		int pipeSend[2];
 		// if you're not the ending command, you're not creating a new pipe
+
 		if(currentCommand != numPipes) {
 			// create sending pipe
 			pipe(pipeSend);
 		}
-/*
+
 		tempArgs[0] = commandTable[currentCommand].commandName;
 		
 		for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
@@ -1134,7 +1241,7 @@ void processPipes() {
 			}
 			else 
 				tempArgs[i+1] = commandTable[currentCommand].args[i];
-		}*/
+		}
 		/*i = 0;
 		while(tempArgs[i] != NULL) {
 			printf("TempArgs : %s ", tempArgs[i]);
@@ -1181,14 +1288,6 @@ void processPipes() {
 				close(pipeSend[0]);
 				close(pipeReceive[1]);
 			}
-			char* s[1];
-			s[0] = "echo";
-			char* t[2];
-			t[0] = "echo";
-			t[1] = "hello"; 
-			commandTable[currentCommand].commandName = "echo";
-			tempArgs[0] = "echo";
-			tempArgs[1] = "hello";
 			int errorCode = execvp(commandTable[currentCommand].commandName, tempArgs);
 			printf("%d", errorCode);
 			exit(0);
@@ -1199,7 +1298,7 @@ void processPipes() {
 		pipeReceive[0] = pipeSend[0];
 		pipeReceive[1] = pipeSend[1];
 		
-	// } 
+	} 
 	//wait(pid, NULL, 0);
 /******************************************* end ********************************/
 /*	if(infile != NULL) {
@@ -1340,6 +1439,33 @@ char * getOutputFile() {
 void initializeTempArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
-		tempArgs[i] = NULL;	
+		tempArgs[i] = NULL;
 	}	
+}
+
+int hasAsterisk(char * arg) {
+	if((int)*arg == 42)
+		return TRUE;
+
+	else return FALSE;
+}
+
+int hasQuestionMark(char * arg) {
+	int i = 0, length = strlen(arg);
+	int firstToken = 0, flag = FALSE;
+	for(i; i < length; ++i) {
+		if(i == 0) {
+			firstToken = (int)*arg;
+			if(firstToken == 63){
+				return TRUE;
+			}
+		}	
+		else {
+			if(firstToken == 63){
+				return FALSE;
+			}
+		}
+		++arg;
+	}
+	return TRUE;
 }
