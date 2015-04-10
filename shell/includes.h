@@ -897,6 +897,7 @@ void processPipes() {
 	int commandCount = 0; 
 	int currentCommand = 0;
 	int pid;
+	int runInBackground = FALSE;
 
 	/*FILE * in = NULL;
 	FILE *out = NULL;
@@ -906,8 +907,8 @@ void processPipes() {
 
 	char *infile = NULL;
 	char *outfile = NULL;
-*/	
-/* find numPipes */
+	*/	
+	/* find numPipes */
 	for(i; i < entireLineLength(); ++i) {
 		if(strcmp(entireLine[i], "|") == 0)
 			++numPipes;
@@ -933,10 +934,18 @@ void processPipes() {
 			}
 			//printf("pipeCounter : %d , i : %d\n", pipeCounter, i);
 		}
+		
 		else {
-			commandTable[pipeCounter].args[numArgs] = entireLine[i];
-			//printf("Args for pipe %d: %s\n", pipeCounter, commandTable[pipeCounter].args[numArgs]);	
-			++numArgs;
+			/* Check for & in background */
+			if(i == entireLineLength()-1 && (strcmp(entireLine[i], "&") == 0)) {
+					// printf("Found run in background");
+					runInBackground = TRUE;
+			}
+			else {
+				commandTable[pipeCounter].args[numArgs] = entireLine[i];
+				//printf("Args for pipe %d: %s\n", pipeCounter, commandTable[pipeCounter].args[numArgs]);	
+				++numArgs;
+			}
 		}	
 	}
 	// printCommandTable();
@@ -962,7 +971,6 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 			tempArgs[i+1] = commandTable[currentCommand].args[i];
 	}
 	
-
 	pid = fork();
 	if(pid > 0) {
 		close(pipeReceive[0]);
@@ -996,16 +1004,23 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 		}
 		int status = execvp(commandTable[currentCommand].commandName, tempArgs);	
 		exit(EXIT_FAILURE);
-		
-		// wait(&status);
 	}
-	// shoft pipes over for next iteration
-	// in parent
+	// shift pipes over for next iteration in parent
 	pipeReceive[0] = pipeSend[0];
 	pipeReceive[1] = pipeSend[1];
+
 } /* End of For Loop */ 
 
-	waitpid(pid, NULL, 0);
+	if(runInBackground == FALSE) {
+		waitpid(pid, NULL, 0);
+
+	}
+	else {
+		fflush(0);
+		runInBackground = FALSE;
+
+	}
+		
 }
 
 
