@@ -40,7 +40,7 @@ char possibleEnvironmentTokens[3];
 char* environmentExpansionVariables[MAXARGS];
 char* tempArgs[MAXARGS];
 char tokenWithoutSlash[MAXARGS];
-
+int isCatNull = FALSE;
 
 /********* Externs - End *********/
 
@@ -51,6 +51,8 @@ pid_t pid[3];
 
 int pipes[MAX_PIPES][2];
 
+/*File IO*/
+int canAppend = -1;
 
 /********* Functions *********/
 
@@ -446,6 +448,7 @@ void do_it(int builtin){
 			break;
         case 1:
         	printenvFunction();
+        	
             break;
         case 2:
         	unsetenvFunction();
@@ -937,12 +940,16 @@ void processPipes() {
 			}
 			//printf("pipeCounter : %d , i : %d\n", pipeCounter, i);
 		}
-		
+
 		else {
 			/* Check for & in background */
 			if(i == entireLineLength()-1 && (strcmp(entireLine[i], "&") == 0)) {
 					// printf("Found run in background");
 					runInBackground = TRUE;
+			}
+			else if(strcmp(entireLine[i], ">") == 0 || strcmp(entireLine[i], ">>") == 0 || strcmp(entireLine[i], "<") == 0 || strcmp(entireLine[i], "2>&1") == 0) {
+				//Break
+				i = MAX_COMMANDS;
 			}
 			else {
 				commandTable[pipeCounter].args[numArgs] = entireLine[i];
@@ -955,6 +962,7 @@ void processPipes() {
 
 
 for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+	isCatNull = FALSE;
 	initializeTempArgs();
 	int pipeReceive[2];
 	int pipeSend[2];
@@ -974,7 +982,7 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 		else 
 			tempArgs[i+1] = commandTable[currentCommand].args[i];
 	}
-	
+	if(wordCount > 1) {
 	pid = fork();
 	if(pid > 0) {
 		close(pipeReceive[0]);
@@ -984,17 +992,68 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 		printf("Error pid is negative\n");
 	}
 	else if(pid == 0) {
+
+		char * infile = getInputFile();
+		char * outfile = getOutputFile();
+
+		FILE *in = NULL;
+		int fd_in = STDIN_FILENO;
+		FILE *out = NULL;
+		int fd_out = STDOUT_FILENO;
+
 		if( numPipes == 0 ) {
-			//do nothing
+			/*Input redirection*/
+			if(infile != NULL) {
+				in = fopen(infile, "r");
+				fd_in = fileno(in);
+			}
+			if(fd_in != STDIN_FILENO) {
+				dup2(fd_in, STDIN_FILENO);
+				dup2(fd_in, STDERR_FILENO);
+			}
+
+			/*Output redirection*/
+			if(outfile != NULL && canAppend == FALSE) {
+				out = fopen(outfile, "w+");
+				fd_out = fileno(out);
+			}
+			else if(outfile != NULL && canAppend == TRUE) {
+				out = fopen(outfile, "a+");
+				fd_out = fileno(out);
+			}
+
+			if(fd_out != STDOUT_FILENO) {
+				dup2(fd_out, STDOUT_FILENO);
+			}
 		}
 		else if(currentCommand == 0) {
 				// printf("firstCommand\n");
-				dup2(pipeSend[1], STDOUT_FILENO);
+				if(infile != NULL) {
+					in = fopen(infile, "r");
+					fd_in = fileno(in);
+				}
+				if(fd_in != STDIN_FILENO) {
+					dup2(fd_in, STDIN_FILENO);
+					dup2(fd_in, STDERR_FILENO);
+				}
+				else dup2(pipeSend[1], STDOUT_FILENO);
 				close(pipeSend[0]);
 		}
 		else if(currentCommand == numPipes) {
 				// printf("lastCommand\n");
-				dup2(pipeReceive[0], STDIN_FILENO);
+				if(outfile != NULL && canAppend == FALSE) {
+				out = fopen(outfile, "w+");
+				fd_out = fileno(out);
+				}
+				else if(outfile != NULL && canAppend == TRUE) {
+					out = fopen(outfile, "a+");
+					fd_out = fileno(out);
+				}
+
+				if(fd_out != STDOUT_FILENO) {
+					dup2(fd_out, STDOUT_FILENO);
+				}
+				else dup2(pipeReceive[0], STDIN_FILENO);
 				close(pipeReceive[1]);
 				
 		}
@@ -1006,14 +1065,23 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 			close(pipeSend[0]);
 			close(pipeReceive[1]);
 		}
-
-		int status = execvp(commandTable[currentCommand].commandName, tempArgs);
-		printf("Error - in execvp %d\n", status);	
+		if(strcmp(commandTable[currentCommand].commandName, "cat") == 0) {
+			if(commandTable[currentCommand].numArgs == 0) {
+				printf("Error executing command.\n");
+				isCatNull = TRUE;
+			}
+		}
+		int status;
+		if(isCatNull == FALSE) {
+			status = execvp(commandTable[currentCommand].commandName, tempArgs);
+			printf("Error executing command: %d\n", status);	
+		}
+		
 		_exit(EXIT_FAILURE);
-
 		if(status == -1) {
 			fflush(0);
 		}
+	}
 	}
 	// shift pipes over for next iteration in parent
 	pipeReceive[0] = pipeSend[0];
@@ -1123,5 +1191,36 @@ void processTildeExpansion() {
 
 }
 
+
+char * getInputFile() {
+	int i = 0;
+
+	char * infile = NULL;
+
+	for(i; i < entireLineLength(); i++)
+		if(strcmp(entireLine[i], "<") == 0)
+			infile = entireLine[i+1];
+
+	return infile;
+}
+
+char * getOutputFile() {
+	int i = 0;
+
+	char * outfile = NULL;
+
+	for(i; i < entireLineLength(); i++) {
+		if(strcmp(entireLine[i], ">") == 0) {
+			outfile = entireLine[i+1];
+			canAppend = FALSE;
+		}
+		else if(strcmp(entireLine[i], ">>") == 0) {
+			outfile = entireLine[i+1];
+			canAppend = TRUE;
+		}
+	}
+
+	return outfile;
+}
 
 
