@@ -130,6 +130,7 @@ void processCommand() {
 	
 	processAlias();
 	processEnvironmentVariablesExpansion();
+	processTildeExpansion();
 
 	int builtin = isBuiltInCommand();
 	
@@ -1002,8 +1003,14 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 			close(pipeSend[0]);
 			close(pipeReceive[1]);
 		}
-		int status = execvp(commandTable[currentCommand].commandName, tempArgs);	
-		exit(EXIT_FAILURE);
+		
+		int status = execvp(commandTable[currentCommand].commandName, tempArgs);
+		printf("Error - in execvp %d\n", status);	
+		_exit(EXIT_FAILURE);
+
+		if(status == -1) {
+			fflush(0);
+		}
 	}
 	// shift pipes over for next iteration in parent
 	pipeReceive[0] = pipeSend[0];
@@ -1023,11 +1030,24 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 		
 }
 
-
 /***********************  PROCESS PIPES END ******************/
 void initializeTempArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
 		tempArgs[i] = NULL;	
 	}	
+}
+
+void processTildeExpansion() {
+	int i;
+	/* check for individual "~" */
+	while(entireLine[i+1] != NULL) {
+		if(strcmp("~", entireLine[i]) == 0){
+			entireLine[i] = home;
+		}
+		++i;
+	}
+
+	/* check for ~word */
+
 }

@@ -129,7 +129,8 @@ extern int yydebug;
     QUOTED = 260,
     OPEN_BRACE = 261,
     CLOSE_BRACE = 262,
-    NEWLINE = 263
+    TILDE = 263,
+    NEWLINE = 264
   };
 #endif
 /* Tokens.  */
@@ -138,7 +139,8 @@ extern int yydebug;
 #define QUOTED 260
 #define OPEN_BRACE 261
 #define CLOSE_BRACE 262
-#define NEWLINE 263
+#define TILDE 263
+#define NEWLINE 264
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -150,7 +152,7 @@ union YYSTYPE
 	int my_number;
 	char* string;
 
-#line 154 "y.tab.c" /* yacc.c:355  */
+#line 156 "y.tab.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -165,7 +167,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 169 "y.tab.c" /* yacc.c:358  */
+#line 171 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -410,7 +412,7 @@ union yyalloc
 #define YYLAST   7
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  9
+#define YYNTOKENS  10
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
@@ -421,7 +423,7 @@ union yyalloc
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   263
+#define YYMAXUTOK   264
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -456,15 +458,15 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8
+       5,     6,     7,     8,     9
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    44,    44,    45,    49,    49,    49,    49,    52,    64,
-      70,    71
+       0,    45,    45,    46,    50,    50,    50,    50,    54,    66,
+      72,    73
 };
 #endif
 
@@ -474,8 +476,9 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "VARIABLE", "WORD", "QUOTED",
-  "OPEN_BRACE", "CLOSE_BRACE", "NEWLINE", "$accept", "commands", "command",
-  "word_case", "quoted_case", "open_brace_case", "close_brace_case", YY_NULLPTR
+  "OPEN_BRACE", "CLOSE_BRACE", "TILDE", "NEWLINE", "$accept", "commands",
+  "command", "word_case", "quoted_case", "open_brace_case",
+  "close_brace_case", YY_NULLPTR
 };
 #endif
 
@@ -484,7 +487,7 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_uint16 yytoknum[] =
 {
-       0,   256,   257,   258,   259,   260,   261,   262,   263
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264
 };
 # endif
 
@@ -544,15 +547,15 @@ static const yytype_int8 yycheck[] =
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    10,     0,     4,     5,     6,     7,    11,    12,    13,
-      14,    15
+       0,    11,     0,     4,     5,     6,     7,    12,    13,    14,
+      15,    16
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,     9,    10,    10,    11,    11,    11,    11,    12,    13,
-      14,    15
+       0,    10,    11,    11,    12,    12,    12,    12,    13,    14,
+      15,    16
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -1236,7 +1239,7 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 52 "parser.y" /* yacc.c:1646  */
+#line 54 "parser.y" /* yacc.c:1646  */
     {
 			//printf("word - ");
 			
@@ -1248,21 +1251,21 @@ yyreduce:
 
 		
 	}
-#line 1252 "y.tab.c" /* yacc.c:1646  */
+#line 1255 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 64 "parser.y" /* yacc.c:1646  */
+#line 66 "parser.y" /* yacc.c:1646  */
     {
 			yyparse();
 			printf("%s\n", yylval.string);
 			printf("Inside quoted\n");
 	}
-#line 1262 "y.tab.c" /* yacc.c:1646  */
+#line 1265 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1266 "y.tab.c" /* yacc.c:1646  */
+#line 1269 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1490,7 +1493,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 76 "parser.y" /* yacc.c:1906  */
+#line 78 "parser.y" /* yacc.c:1906  */
 
 
 

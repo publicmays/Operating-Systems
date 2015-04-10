@@ -19,7 +19,6 @@
 \{											return OPEN_BRACE;
 \}											return CLOSE_BRACE;
 
-
 \n | ";"									{ wordCount = 0; return END;};
 [\"]+[^ \n]*[\"]							{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
 											yylval.string[0] = '\0'; yylval.string++; return WORD; } 

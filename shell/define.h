@@ -34,6 +34,7 @@
 
 /* Pipelining */
 #define MAX_PIPES			200
+#define MAX_WILDCARDS		100
 
 
 /* Data Structures */
@@ -84,6 +85,7 @@ void processCommand();
 /* processCommand() functions */
 void processAlias();
 void processEnvironmentVariablesExpansion();
+void processTildeExpansion();
 int isBuiltInCommand();
 void do_it(int builtin);
 

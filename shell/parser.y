@@ -35,6 +35,7 @@ extern char* entireLine[MAXARGS];
 %token <string> QUOTED
 %token <string> OPEN_BRACE;
 %token <string> CLOSE_BRACE;
+%token <string> TILDE;
 %token NEWLINE
 
 %type <string> word_case 
@@ -46,8 +47,9 @@ commands:
 	;
 
 command:
-	word_case | open_brace_case | close_brace_case | quoted_case
+	word_case | open_brace_case | close_brace_case | quoted_case 
 	;
+
 
 word_case: WORD {
 			//printf("word - ");

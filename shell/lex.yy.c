@@ -766,39 +766,39 @@ return CLOSE_BRACE;
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
-#line 24 "scanner.l"
+#line 23 "scanner.l"
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 24 "scanner.l"
+#line 23 "scanner.l"
 { yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
 											yylval.string[0] = '\0'; yylval.string++; return WORD; } 
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 26 "scanner.l"
+#line 25 "scanner.l"
 { yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
 											yylval.string[0] = '\0'; yylval.string++; return WORD; }											
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 28 "scanner.l"
+#line 27 "scanner.l"
 {yylval.string = strdup(yytext);return WORD;};
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 30 "scanner.l"
+#line 29 "scanner.l"
 {;}/* ignore whitespace */
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 31 "scanner.l"
+#line 30 "scanner.l"
 {;}/* everything else = error */
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 34 "scanner.l"
+#line 33 "scanner.l"
 ECHO;
 	YY_BREAK
 #line 805 "lex.yy.c"
@@ -1799,7 +1799,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 34 "scanner.l"
+#line 33 "scanner.l"
 
 
 

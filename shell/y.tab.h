@@ -50,7 +50,8 @@ extern int yydebug;
     QUOTED = 260,
     OPEN_BRACE = 261,
     CLOSE_BRACE = 262,
-    NEWLINE = 263
+    TILDE = 263,
+    NEWLINE = 264
   };
 #endif
 /* Tokens.  */
@@ -59,7 +60,8 @@ extern int yydebug;
 #define QUOTED 260
 #define OPEN_BRACE 261
 #define CLOSE_BRACE 262
-#define NEWLINE 263
+#define TILDE 263
+#define NEWLINE 264
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -71,7 +73,7 @@ union YYSTYPE
 	int my_number;
 	char* string;
 
-#line 75 "y.tab.h" /* yacc.c:1909  */
+#line 77 "y.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

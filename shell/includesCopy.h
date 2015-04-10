@@ -1451,6 +1451,7 @@ int hasAsterisk(char * arg) {
 }
 
 int hasQuestionMark(char * arg) {
+
 	int i = 0, length = strlen(arg);
 	int firstToken = 0, flag = FALSE;
 	for(i; i < length; ++i) {
@@ -1467,5 +1468,6 @@ int hasQuestionMark(char * arg) {
 		}
 		++arg;
 	}
+
 	return TRUE;
 }

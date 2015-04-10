@@ -92,12 +92,12 @@ void processPipes() {
 			else 
 				tempArgs[i+1] = commandTable[currentCommand].args[i];
 		}
-		/*i = 0;
+		/* i = 0;
 		while(tempArgs[i] != NULL) {
 			printf("TempArgs : %s ", tempArgs[i]);
 			++i;
 		}
-		 printf( "\n");*/
+		 printf( "\n"); */
 
 		pid = fork();
 		if(pid > 0) {
