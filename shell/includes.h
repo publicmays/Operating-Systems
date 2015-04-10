@@ -1,5 +1,6 @@
 #include "define.h"
 #include <sys/types.h>
+#include <pwd.h>
 /******************************* Globals *******************************/
 /* Prompt */
 static int globalReadOffset;
@@ -38,6 +39,7 @@ static char environmentVariableSyntax[3];
 char possibleEnvironmentTokens[3];
 char* environmentExpansionVariables[MAXARGS];
 char* tempArgs[MAXARGS];
+char tokenWithoutSlash[MAXARGS];
 
 
 /********* Externs - End *********/
@@ -130,7 +132,7 @@ void processCommand() {
 	
 	processAlias();
 	processEnvironmentVariablesExpansion();
-	processTildeExpansion();
+	//processTildeExpansion();
 
 	int builtin = isBuiltInCommand();
 	
@@ -512,7 +514,7 @@ int printEntireLine2() {
 void cdFunction() {
 	// Debug getCurrentDirectory();
 	int cdIndex = 3;
-	int cdArgLength = builtInCommandArgsLength(cdIndex);	// #define CD 3
+	int cdArgLength = builtInCommandArgsLength(cdIndex);	// #define  3
 
 	/* "path", 'path' - 3 tokens */
 	if(cdArgLength <= 3){
@@ -949,8 +951,9 @@ void processPipes() {
 			}
 		}	
 	}
-	// printCommandTable();
-/* Start of For Loop */
+	//printCommandTable();
+
+
 for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 	initializeTempArgs();
 	int pipeReceive[2];
@@ -1003,7 +1006,7 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 			close(pipeSend[0]);
 			close(pipeReceive[1]);
 		}
-		
+
 		int status = execvp(commandTable[currentCommand].commandName, tempArgs);
 		printf("Error - in execvp %d\n", status);	
 		_exit(EXIT_FAILURE);
@@ -1016,18 +1019,15 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 	pipeReceive[0] = pipeSend[0];
 	pipeReceive[1] = pipeSend[1];
 
-} /* End of For Loop */ 
+} // End of For Loop 
 
 	if(runInBackground == FALSE) {
 		waitpid(pid, NULL, 0);
-
 	}
 	else {
-		fflush(0);
+		//fflush(0);
 		runInBackground = FALSE;
-
 	}
-		
 }
 
 /***********************  PROCESS PIPES END ******************/
@@ -1039,15 +1039,89 @@ void initializeTempArgs() {
 }
 
 void processTildeExpansion() {
-	int i;
-	/* check for individual "~" */
+	int foundTilde = FALSE;
+	int slashFound = FALSE;
+	int i = 0, j = 0, k = 0;
+	int firstToken = 0;
+	int length = 0;
+	int slashIndex;
+	char* c;
+	char* c1;
+	char* c2;
+
+	char* temp[1];
 	while(entireLine[i+1] != NULL) {
+		/* check for individual "~" */
 		if(strcmp("~", entireLine[i]) == 0){
 			entireLine[i] = home;
+			break;
 		}
-		++i;
-	}
+		else {
+		
+			/* check for ~word */
+			c = entireLine[i];
+			c1 = entireLine[i];
 
-	/* check for ~word */
+			length = strlen(entireLine[i]);
+			
+			slashIndex = length;
+			/* Traverse each word in entireLine[i]
+			 * if first token is ~, foundTilde = TRUE
+			 * if / is found, slashIndex = i
+			 */
+
+			for(j=0; j < length; ++j) {
+		
+				// first Token
+				if(j == 0) {
+					
+					firstToken = (int)*c;
+					
+					// found tilde 
+					if(firstToken == 126){
+					
+						foundTilde = TRUE;
+					}
+				}
+				else {
+					// if you find a slash
+					if(*c == 47){
+						slashFound = TRUE;
+						slashIndex = j;
+						break;
+					}
+				}
+				++c;
+			}
+			
+			if(foundTilde == TRUE) {
+
+				/* ~hello/fewa -> ~hello
+				 * if there was a slash, copy new word without slash into tokenWithoutSlash
+				 * if there was no slash, entireLine[i] gets copied fully into variable */
+				strncpy(tokenWithoutSlash, entireLine[i], slashIndex);
+
+				// extract word from tilde ~hello -> hello
+				memmove(&tokenWithoutSlash[0], &tokenWithoutSlash[0 + 1], strlen(tokenWithoutSlash) - 0);
+
+		
+
+				struct passwd* pw;
+				pw = getpwnam(tokenWithoutSlash);
+	            if((pw == NULL)) {
+	            	printf("Error - getpwnam unknown user\n");
+	            }
+	            else {
+	            	entireLine[i] = pw->pw_dir;
+	            	// printf("%s", entireLine[i]);
+	            }
+			}
+			++i;
+		}
+	} // end of while loop
+	
 
 }
+
+
+
