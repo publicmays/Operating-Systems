@@ -403,7 +403,7 @@ void getCurrentDirectory(){
 void execute_it(){
 	int i; 
 	int pipeCount = 0;
-
+	int wordLength = 0;
 
 	/*Get number of pipes*/
 	for(i = 0; i < entireLineLength(); ++i)
@@ -416,7 +416,10 @@ void execute_it(){
 	int finalIndex = 0;
 
 	for(i = 0; i < entireLineLength(); i++) {
-		if(hasAsterisk(entireLine[i]) == TRUE || hasQuestionMark(entireLine[i]) == TRUE) {
+		wordLength = strlen(entireLine[i]);
+
+		// if(hasAsterisk(entireLine[i]) == TRUE || hasQuestionMark(entireLine[i]) == TRUE) {
+		if (hasPattern(entireLine[i], wordLength) == TRUE){
 			glob_t globbuf;
 
 			if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
@@ -1089,17 +1092,6 @@ void initializeVariableTable() {
 void initializeCurrentArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
-
-		/*
-
-		my_setenv.args[i] = NULL;
-		my_printenv.args[i] = NULL;
-		my_unsetenv.args[i] = NULL;
-		my_cd.args[i] = NULL;
-		my_alias.args[i] = NULL;
-		my_unalias.args[i] = NULL;
-		my_bye.args[i] = NULL;*/
-
 		builtInTable[0].args[i] = NULL;
 		builtInTable[1].args[i] = NULL;
 		builtInTable[2].args[i] = NULL;
@@ -1203,18 +1195,6 @@ void processPipes() {
 	}
 	// printCommandTable();
 
-	/*for(i; i < entireLineLength(); i++) {
-		if(strcmp(entireLine[i], "<") == 0)
-			infile = entireLine[i+1];
-		if(strcmp(entireLine[i], ">") == 0) {
-			outfile = entireLine[i+1];
-			append = 0;
-		}
-		if(strcmp(entireLine[i], ">>") == 0) {
-			outfile = entireLine[i+1];
-			append = 1;
-		}
-	}*/
 /************************************* START *****************************************/
 	int currentCommand = 0;
 	int pid;
@@ -1298,144 +1278,9 @@ void processPipes() {
 		pipeReceive[0] = pipeSend[0];
 		pipeReceive[1] = pipeSend[1];
 		
-	} 
-	//wait(pid, NULL, 0);
-/******************************************* end ********************************/
-/*	if(infile != NULL) {
-		in = fopen(infile, "r");
-		fd_in = fileno(in);
 	}
+} 
 
-	if(outfile != NULL && append == 0) {
-		out = fopen(outfile, "w+");
-		fd_out = fileno(out);
-	}
-	else if(outfile != NULL && append == 1) {
-		out = fopen(outfile, "a+");
-		fd_out = fileno(out);
-	}
-*/
-
-
-}
-/*
-void in_redir() {
-	FILE *in = NULL;
-	int fd_in = STDIN_FILENO;
-
-	char *infile = getInputFile();
-
-	if(infile != NULL) {
-		in = fopen(infile, "r");
-		fd_in = fileno(in);
-	}
-
-	pid_t processID = fork();
-
-	if(processID == 0) {
-		if(fd_in != STDIN_FILENO) {
-			dup2(fd_in, STDIN_FILENO);
-			dup2(fd_in, STDERR_FILENO);
-		}
-		if(fd_out != STDOUT_FILENO) {
-			dup2(fd_out, STDOUT_FILENO);
-		}
-
-		int returnVal = execvp(entireLine[0], entireLine2);
-		exit(0);
-	}
-	wait();
-}
-
-char * getInputFile() {
-
-	char *infile = NULL;
-
-	for(i; i < entireLineLength(); i++) {
-		if(strcmp(entireLine[i], "<") == 0)
-			infile = entireLine[i+1];
-	}
-
-	return infile;
-}
-
-
-void out_redir() {
-
-}
-
-char * getOutputFile() {
-
-	char *outfile = NULL;
-
-	for(i; i < entireLineLength(); i++) {
-		if(strcmp(entireLine[i], ">") == 0) {
-			outfile = entireLine[i+1];
-		}
-		if(strcmp(entireLine[i], ">>") == 0) {
-			outfile = entireLine[i+1];
-		}
-	}
-
-	return outfile;
-}
-*/
-
-/******************* currPIpe ***************/
-/* int currPipe = 0;
-	for(currPipe; currPipe <= numPipes; currPipe++) {
-		pipe(commandTable[currPipe].io);
-		printf("Piped: %d\n", currPipe);
-
-		if(currPipe == 0 && numPipes == 0) {
-			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-			exit(0);
-		}
-		if(currPipe == 0 && numPipes > 0) {
-			printf("1");
-			int pid = fork();
-			if(pid == 0) {
-				printf("Its the first pipe!\n");
-				int i = 0; 
-
-				while(entireLine[i+1] != NULL) {
-					entireLine2[i] = entireLine[i];
-					++i;
-				}
-
-				//close(STDOUT_FILENO);
-				dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-				//close(commandTable[currPipe+1].io[0]);
-				execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-				
-				exit(0);
-			}
-			wait();
-			//in_redir();
-		}
-		if(currPipe == numPipes) {
-			printf("2");
-			printf("Its the last pipe!\n");
-			//close(STDIN_FILENO);
-			dup2(commandTable[currPipe-1].io[0], STDIN_FILENO);
-			execvp(commandTable[currPipe].commandName, commandTable[currPipe].args);
-			exit(0);
-			//out_redir();
-		}
-		wait();
-		
-		else if(numPipes == 1) {
-			//in_redir();
-			//out_redir();
-		}
-		else {
-			printf("Middle pipe!\n");
-			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-			dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
-			close(commandTable[currPipe+1].io[0]);
-		}
-	}
-	*/
 void initializeTempArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
@@ -1451,7 +1296,7 @@ int hasAsterisk(char * arg) {
 }
 
 int hasQuestionMark(char * arg) {
-
+	printf("hasQuestionMark\n");
 	int i = 0, length = strlen(arg);
 	int firstToken = 0, flag = FALSE;
 	for(i; i < length; ++i) {
@@ -1470,4 +1315,16 @@ int hasQuestionMark(char * arg) {
 	}
 
 	return TRUE;
+}
+
+int hasPattern(char* arg, int length){
+	int i = 0;
+	for(i; i < length; ++i) {
+		if(*arg == 42)
+			return TRUE;
+		if(*arg == 63)
+			return TRUE;
+		++arg;
+	}
+	return FALSE;
 }
