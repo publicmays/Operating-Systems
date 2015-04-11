@@ -1277,16 +1277,20 @@ void processWildCards() {
 	/*Get the length of the command*/
 	int length = entireLineLength();
 
+	for(i = 0; i < entireLineLength(); i++) {
+		entireLine2[i] = entireLine[i];
+	}
+
 	/*Process wild cards*/
 	for(i = 0; i < length; i++) {
-		int wordLength = strlen(entireLine[i]);
+		int wordLength = strlen(entireLine2[i]);
 
 		/*Check to see if the current arg contains a wildcard*/
-		if (hasPattern(entireLine[i], wordLength) == TRUE){
+		if (hasPattern(entireLine2[i], wordLength) == TRUE){
 			glob_t globbuf;
 
 			// If the arg has a wildcard, check for matches
-			if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
+			if (glob(entireLine2[i], 0, NULL, &globbuf) == 0) {
 				 size_t j;
 				 int count = 0;
 
@@ -1299,21 +1303,21 @@ void processWildCards() {
 				 //Copy the matches back into the original command
 				 int z;
 				 for(z = 0; z < count; z++) {
-				 	entireLine2[finalIndex] = wildCardResults[z];
+				 	entireLine[finalIndex] = wildCardResults[z];
 				 	finalIndex++;
 				 }
 			}
 			//Couldn't find a match, just stick it back into the args
 			else {
-				entireLine2[finalIndex] = entireLine[i];
+				entireLine[finalIndex] = entireLine2[i];
 				finalIndex++;
 			}
-			//globfree(&globbuf);*/
+			globfree(&globbuf);
 		}
 
 		/*If there wasn't a wildcard, copy the arg from the temp array back into the original*/
 		else {
-			entireLine2[finalIndex] = entireLine[i];
+			entireLine[finalIndex] = entireLine2[i];
 			finalIndex++;
 		}
 	}
