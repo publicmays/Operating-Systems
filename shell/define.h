@@ -128,7 +128,7 @@ void in_redir();
 void out_redir();
 char * getInputFile();
 char * getOutputFile();
-
+int hasPattern(char* arg, int length);
 /* Debugging */
 int entireLineLength();
 int printEntireLine();
