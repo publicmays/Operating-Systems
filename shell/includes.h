@@ -623,10 +623,31 @@ int unsetenvFunction() {
 
 void printenvFunction() {
 	int i = 0;
-	/*Print variable table*/
-	for(i; i < MAX_VARIABLES; i++)
-		if(variableTable[i].used == 1)
-			printf("%s = %s\n", variableTable[i].variable, variableTable[i].word);
+
+	char * outfile = getOutputFile();
+	FILE *out = NULL;
+
+	if(outfile != NULL && canAppend == FALSE) {
+		out = fopen(outfile, "w+");
+		for(i; i < MAX_VARIABLES; i++){
+			if(variableTable[i].used == 1)
+				fprintf(out, "%s = %s\n", variableTable[i].variable, variableTable[i].word);
+		}
+		fclose(out);
+	}
+	else if(outfile != NULL && canAppend == TRUE) {
+		out = fopen(outfile, "a+");
+		for(i; i < MAX_VARIABLES; i++){
+			if(variableTable[i].used == 1)
+				fprintf(out, "%s = %s\n", variableTable[i].variable, variableTable[i].word);
+		}
+		fclose(out);
+	}
+	else {
+		for(i; i < MAX_VARIABLES; i++)
+			if(variableTable[i].used == 1)
+				printf("%s = %s\n", variableTable[i].variable, variableTable[i].word);
+	}
 }
 
 int aliasFunction() {
@@ -640,7 +661,7 @@ int aliasFunction() {
 	
 	// printf("Start of alias - argLength : %d\n", alias_argLength);
 	// if user types alias, no arguments exist 
-	if(alias_argLength == 0){
+	if(alias_argLength == 0 || strcmp(entireLine[1], ">") == 0){
 		printaliasFunction();
 	}
 	else if(alias_argLength == 1){
@@ -721,12 +742,40 @@ int unaliasFunction() {
 
 void printaliasFunction() {
 	int i = 0;
-	for(i; i < MAX_ALIAS; i++){
-		if(aliasTable[i].used == 1){
-			//printf("%d - Used %d", i, aliasTable[i].used);
-			printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
+
+	/* IO REDIRECTION */
+	char * outfile = getOutputFile();
+	FILE *out = NULL;
+
+	if(outfile != NULL && canAppend == FALSE) {
+		out = fopen(outfile, "w+");
+		for(i; i < MAX_ALIAS; i++){
+			if(aliasTable[i].used == 1){
+				//printf("%d - Used %d", i, aliasTable[i].used);
+				fprintf(out, "%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
+			}
+		}
+		fclose(out);
+	}
+	else if(outfile != NULL && canAppend == TRUE) {
+		out = fopen(outfile, "a+");
+		for(i; i < MAX_ALIAS; i++){
+			if(aliasTable[i].used == 1){
+				//printf("%d - Used %d", i, aliasTable[i].used);
+				fprintf(out, "%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
+			}
+		}
+		fclose(out);
+	}
+	else {
+		for(i; i < MAX_ALIAS; i++){
+			if(aliasTable[i].used == 1){
+				//printf("%d - Used %d", i, aliasTable[i].used);
+				printf("%s = %s\n", aliasTable[i].aliasName, aliasTable[i].aliasContent);
+			}
 		}
 	}
+
 }
 
 /* TODO - alias fdsa**(), because scanner doesn't take in **(), it just makes alias fdsa */

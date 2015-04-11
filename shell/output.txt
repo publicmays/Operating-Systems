@@ -1,1 +1,2 @@
-hi
+hello = world
+a = b
