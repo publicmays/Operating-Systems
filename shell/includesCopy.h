@@ -411,7 +411,7 @@ void execute_it(){
 			pipeCount++;
 
 
-	/*Check for wildcards*/
+	/*************************Check for wildcards*************************/
 	char * wildCardResults[MAX_WILDCARDS];
 	int finalIndex = 0;
 
@@ -446,42 +446,6 @@ void execute_it(){
 	}
 
 	i = 0;
-	while(entireLine2[i] != NULL) {
-		//printf("arg %d: %s\n", i, entireLine2[i]);
-		i++;
-	}
-	/*for(i = 0; i < wildcardCount; i++) {
-		if(pipeCount == 0) {
-		i = 0;
-		while(entireLine[i+1] != NULL) {
-			entireLine2[i] = entireLine[i];
-			++i;
-		}
-
-		pid_t pid[MAX_PIPES];
-
-		pid[0] = fork();
-
-		if(pid[0] == -1) {
-			printf("There was an error.\n");
-		}
-
-		else if(pid[0] != 0) {
-			//printf("In Parent.\n");
-		}
-
-		else {
-			//printEntireLine2();
-			int returnVal = execvp(entireLine[0], wildCardResults);
-
-			if(returnVal == -1) 
-				printf("Error executing command.\n");
-
-			exit(0);
-		} 
-		wait();
-	}
-	}*/
 
 
 	/*If no redirecting execute command*/

@@ -1,7 +1,6 @@
 #include "define.h"
 #include <sys/types.h>
 #include <glob.h>
-#include <pwd.h>
 /******************************* Globals *******************************/
 /* Prompt */
 static int globalReadOffset;
@@ -40,9 +39,7 @@ static char environmentVariableSyntax[3];
 char possibleEnvironmentTokens[3];
 char* environmentExpansionVariables[MAXARGS];
 char* tempArgs[MAXARGS];
-char tokenWithoutSlash[MAXARGS];
-int isCatNull = FALSE;
-char * wildCardResults[MAX_WILDCARDS];
+
 
 /********* Externs - End *********/
 
@@ -53,8 +50,6 @@ pid_t pid[3];
 
 int pipes[MAX_PIPES][2];
 
-/*File IO*/
-int canAppend = -1;
 
 /********* Functions *********/
 
@@ -133,14 +128,10 @@ int getCommand() {
 }
 
 void processCommand() {
-	processAlias();
 	
-	processTildeExpansion();
-
-	// processEnvironmentVariablesExpansion must go after processTildeExpansion or segfault will happen
-	// echo ~ does not work
+	processAlias();
 	processEnvironmentVariablesExpansion();
-		
+	//processPipes();
 	
 	int builtin = isBuiltInCommand();
 	
@@ -410,10 +401,112 @@ void getCurrentDirectory(){
 
 /* Handles commands except built-in */
 void execute_it(){
+	int i; 
+	int pipeCount = 0;
+	int wordLength = 0;
 
-	processPipes();
-	// pid_t pid[MAX_PIPES];
+	/*Get number of pipes*/
+	for(i = 0; i < entireLineLength(); ++i)
+		if(strcmp(entireLine[i], "|") == 0)
+			pipeCount++;
 
+
+	/*************************Check for wildcards*************************/
+	char * wildCardResults[MAX_WILDCARDS];
+	int finalIndex = 0;
+
+	for(i = 0; i < entireLineLength(); i++) {
+		wordLength = strlen(entireLine[i]);
+
+		// if(hasAsterisk(entireLine[i]) == TRUE || hasQuestionMark(entireLine[i]) == TRUE) {
+		if (hasPattern(entireLine[i], wordLength) == TRUE){
+			glob_t globbuf;
+
+			if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
+				 size_t j;
+				 int count = 0;
+				 for (j = 0; j < globbuf.gl_pathc; j++) {
+				 	wildCardResults[j] = strdup(globbuf.gl_pathv[j]);
+				 	count++;
+				 }
+				 int z;
+				 for(z = 0; z < count; z++) {
+				 	entireLine[finalIndex] = wildCardResults[z];
+				 	//printf("arg %d: %s\n", finalIndex, entireLine[finalIndex]);
+				 	finalIndex++;
+				 }
+			}
+			globfree(&globbuf);
+		}
+		else {
+			entireLine[finalIndex] = entireLine[i];
+			//printf("arg %d: %s\n", finalIndex, entireLine[finalIndex]);
+			finalIndex++;
+		}
+	}
+
+	i = 0;
+	while(entireLine[i] != NULL) {
+		//printf("arg %d: %s\n", i, entireLine[i]);
+		i++;
+	}
+
+	/*If no redirecting execute command*/
+	if(pipeCount == 0) {
+		i = 0;
+		/*while(entireLine[i+1] != NULL) {
+			entireLine2[i] = entireLine[i];
+			printf("2nd arg %d: %s\n", i, entireLine2[i]);
+			++i;
+		}*/
+
+		pid_t pid[MAX_PIPES];
+
+		pid[0] = fork();
+
+		if(pid[0] == -1) {
+			printf("There was an error.\n");
+		}
+
+		else if(pid[0] != 0) {
+			//printf("In Parent.\n");
+		}
+
+		else {
+			//printEntireLine2();
+			int returnVal = execvp(entireLine[0], entireLine);
+
+			if(returnVal == -1) 
+				printf("Error executing command.\n");
+
+			exit(0);
+		} 
+		wait();
+	}
+
+/*
+	int c = 0;
+	int comds = 2;
+	for(c; c < comds; c++) {
+		switch(pid[c] = fork()) {
+			case 0:
+				switch(c) {
+					case 0:
+						close(STDOUT_FILENO);
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						close(commandTable[currPipe+1].io[0]);
+						in_redir();
+					case comds - 1:
+						close(STDIN_FILENO);
+						dup2(commandTable[currPipe].io[0], STDIN_FILENO);
+						out_redir();
+					default:
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						dup2(commandTable[currPipe].io[1], STDOUT_FILENO);
+						close(commandTable[currPipe+1].io[0]);
+				}
+		}
+	}*/
 
 		/* ONE COMMAND EXECVP WORKS *******************************
 
@@ -440,6 +533,133 @@ void execute_it(){
 
 	*******************************************************************************/
 
+	
+
+	/*FILE *in = NULL;
+	FILE *out = NULL;
+
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
+
+	char *infile = "input.txt";
+	char *outfile = "output.txt";
+
+	if(infile != NULL) {
+		in = fopen(infile, "r");
+		fd_in = fileno(in);
+	}
+
+	if(outfile != NULL) {
+		out = fopen(outfile, "w+");
+		fd_out = fileno(out);
+	}
+
+	pid_t processID = fork();
+	if(processID == 0) {
+		if(fd_in != STDIN_FILENO) {
+			dup2(fd_in, STDIN_FILENO);
+			dup2(fd_in, STDERR_FILENO);
+		}
+		if(fd_out != STDOUT_FILENO) {
+			dup2(fd_out, STDOUT_FILENO);
+		}
+
+		while(entireLine[i+1] != NULL) {
+			entireLine2[i] = entireLine[i];
+			++i;
+		}
+
+		int returnVal = execvp(entireLine[0], entireLine2);
+
+		exit(0);
+	}
+	wait();*/
+
+	/*char* executableLine[entireLineLength() - 1];
+
+	pid_t pids[MAX_COMMANDS];
+
+	int i = 0;
+	for(i; i < entireLineLength() -1; i++) {
+		executableLine[i] = entireLine[i+1];
+	}
+	fork();
+	execvp(entireLine[0], executableLine);*/
+	/*
+	switch(pids[i] = fork()) {
+		case -1:
+			printf("Failed to fork");
+			break;
+		case 0:
+			if(lastPipe >= 0) {
+				//Pipe to read from
+				dup2(lastPipe, STDIN_FILE_ID);
+				close(lastPip);
+			}
+			if(currPipe[WRITE_END] >= 0) {
+				//Pipe to right to
+				dup2(currPipe[WRITE_END], STDOUT_FILE_ID);
+				close(currPipe[WRITE_END]);
+				close(currPipe[READ_END]);
+			}
+			executeCommand(command);
+			exit(0);
+			break;
+		default:
+			if(currPipe[WRITE_END] >= 0)
+				close(currPipe[WRITE_END]);
+			if(lastPipe >= 0)
+				close(lastPipe);
+
+			lastPipe = currPipe[READ_END];
+			currPipe[READ_END] = -1;
+			currPipe[WRITE_END] = -1;
+			break;
+	}*/
+
+	// check command accessability & executability
+	/*if(!Executable()) { }
+	
+	// check io file existance in case of io redirection
+	if(check_in_file() == SYSERR){ }
+	if(check_out_file() == SYSERR) { }
+
+	// build up the pipeline
+	for(c = 0; c < currcmd; ++c) {
+		// prep args
+		if( ... ) {argv }
+		else { }
+		switch(pid == fork() ) { // fork process returns twice 
+			case 0 : 
+			switch(whichCommand(c)) {
+				case FIRST:
+					if(close(1) == SYSCALLER) {
+
+					}
+					if(dup(comtab[c].outfd)!= 1) {...}
+					if(close(comtab[c+1].infd) == SYSCALLER) {...}
+					in_redir();
+					break;
+				case LAST:
+					if(close(0) == SYSCALLER) {
+
+					}
+					if(dup(comtab[c].infd) != 0) { ... }
+					out_redir();
+					break;
+				case THE_ONLY_ONE:
+					in_redir();
+					out_redir();
+					break;
+				default:
+					if(dup2(comtab[c].outfd, 1) == SYSCALLER) {...}
+					if(dup2(comtab[c].infd, 0) == SYSCALLER) {...}
+					if(close(comtab[c+1].infd) == SYSCALLER) {...}
+					break;
+			}
+		}
+	}
+*/
 }
 /* Handles all built in commands */
 void do_it(int builtin){
@@ -455,7 +675,6 @@ void do_it(int builtin){
 			break;
         case 1:
         	printenvFunction();
-        	
             break;
         case 2:
         	unsetenvFunction();
@@ -524,7 +743,7 @@ int printEntireLine2() {
 void cdFunction() {
 	// Debug getCurrentDirectory();
 	int cdIndex = 3;
-	int cdArgLength = builtInCommandArgsLength(cdIndex);	// #define  3
+	int cdArgLength = builtInCommandArgsLength(cdIndex);	// #define CD 3
 
 	/* "path", 'path' - 3 tokens */
 	if(cdArgLength <= 3){
@@ -840,17 +1059,6 @@ void initializeVariableTable() {
 void initializeCurrentArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
-
-		/*
-
-		my_setenv.args[i] = NULL;
-		my_printenv.args[i] = NULL;
-		my_unsetenv.args[i] = NULL;
-		my_cd.args[i] = NULL;
-		my_alias.args[i] = NULL;
-		my_unalias.args[i] = NULL;
-		my_bye.args[i] = NULL;*/
-
 		builtInTable[0].args[i] = NULL;
 		builtInTable[1].args[i] = NULL;
 		builtInTable[2].args[i] = NULL;
@@ -898,32 +1106,36 @@ void printPrompt() {
 	fgets(promptResponse, MAX_PROMPT_LENGTH, stdin);
 }
 
-/************************** PROCESS PIPES START *******************************/
+
 void processPipes() {
 	int i = 0;
 	int append = -1;
 	int numArgs = 0;
 	int numPipes = 0;
 	int pipeCounter = 0;
-	int commandCount = 0; 
-	int currentCommand = 0;
-	int pid = 0;
-	int runInBackground = FALSE;
+	int commandCount = 0;
+	
+	FILE * in = NULL;
+	FILE *out = NULL;
 
+	int fd_in = STDIN_FILENO;
+	int fd_out = STDOUT_FILENO;
+
+	char *infile = NULL;
+	char *outfile = NULL;
 	/* find numPipes */
 	for(i; i < entireLineLength(); ++i) {
 		if(strcmp(entireLine[i], "|") == 0)
 			++numPipes;
 	}
 	if(numPipes == 0){
-
 		commandTable[0].commandName = entireLine[0];
 		commandTable[0].numArgs = entireLineLength() - 1;
 	}
-	
 	/*********** build command table ***********/
 	for(i = 0; i < entireLineLength(); i++)
 	{	
+		
 		if(commandCount == 0) {
 			commandTable[pipeCounter].commandName = entireLine[i];
 			++commandCount;
@@ -937,298 +1149,141 @@ void processPipes() {
 				commandTable[pipeCounter].numArgs = entireLineLength() - i - 2;
 			}
 			//printf("pipeCounter : %d , i : %d\n", pipeCounter, i);
+			
 		}
-
 		else {
-			/* Check for & in background */
-			if(i == entireLineLength()-1 && (strcmp(entireLine[i], "&") == 0)) {
-					// printf("Found run in background");
-					runInBackground = TRUE;
-			}
-			else if(strcmp(entireLine[i], ">") == 0 || strcmp(entireLine[i], ">>") == 0 || strcmp(entireLine[i], "<") == 0 || strcmp(entireLine[i], "2>&1") == 0) {
-				//Break
-				i = MAX_COMMANDS;
-			}
-			else {
-				// TODO
-				/* Should process wild cards here */
-				// processWildCards(i);
-
-
-				commandTable[pipeCounter].args[numArgs] = entireLine[i];
-				//printf("Args for pipe %d: %s\n", pipeCounter, commandTable[pipeCounter].args[numArgs]);	
-				++numArgs;
-			}
+			
+			commandTable[pipeCounter].args[numArgs] = entireLine[i];
+			//printf("Args for pipe %d: %s\n", pipeCounter, commandTable[pipeCounter].args[numArgs]);	
+			++numArgs;
 		}	
-	}
-	/*********** end build command table ***********/
-	//printCommandTable();
-
-
-for(currentCommand; currentCommand <= numPipes; currentCommand++) {
-	isCatNull = FALSE;
-	initializeTempArgs();
-	int pipeReceive[2];
-	int pipeSend[2];
-	tempArgs[0] = commandTable[currentCommand].commandName;
-	// if you're not the ending command, you're creating a new pipe
-	if(currentCommand != numPipes) {
-		// create sending pipe
-		pipe(pipeSend);
-	}
-	tempArgs[0] = commandTable[currentCommand].commandName;
+	
 		
-	for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
-		if(i == commandTable[currentCommand].numArgs)
-		{
-			tempArgs[i+1] = NULL;
-		}
-		else 
-			tempArgs[i+1] = commandTable[currentCommand].args[i];
 	}
-	if(wordCount > 1) {
-	pid = fork();
-	if(pid > 0) {
-		close(pipeReceive[0]);
-		close(pipeReceive[1]);
-	}
-	else if(pid < 0) {
-		printf("Error pid is negative\n");
-	}
-	else if(pid == 0) {
+	// printCommandTable();
 
-		char * infile = getInputFile();
-		char * outfile = getOutputFile();
+/************************************* START *****************************************/
+	int currentCommand = 0;
+	int pid;
 
-		FILE *in = NULL;
-		int fd_in = STDIN_FILENO;
-		FILE *out = NULL;
-		int fd_out = STDOUT_FILENO;
 
-		if( numPipes == 0 ) {
-			/*Input redirection*/
-			if(infile != NULL) {
-				in = fopen(infile, "r");
-				fd_in = fileno(in);
-			}
-			if(fd_in != STDIN_FILENO) {
-				dup2(fd_in, STDIN_FILENO);
-				dup2(fd_in, STDERR_FILENO);
-			}
 
-			/*Output redirection*/
-			if(outfile != NULL && canAppend == FALSE) {
-				out = fopen(outfile, "w+");
-				fd_out = fileno(out);
-			}
-			else if(outfile != NULL && canAppend == TRUE) {
-				out = fopen(outfile, "a+");
-				fd_out = fileno(out);
-			}
+	for(currentCommand; currentCommand <= numPipes; currentCommand++) {
+		initializeTempArgs();
+		int pipeReceive[2];
+		int pipeSend[2];
+		// if you're not the ending command, you're not creating a new pipe
 
-			if(fd_out != STDOUT_FILENO) {
-				dup2(fd_out, STDOUT_FILENO);
-			}
+		if(currentCommand != numPipes) {
+			// create sending pipe
+			pipe(pipeSend);
 		}
-		else if(currentCommand == 0) {
-				// printf("firstCommand\n");
-				if(infile != NULL) {
-					in = fopen(infile, "r");
-					fd_in = fileno(in);
-				}
-				if(fd_in != STDIN_FILENO) {
-					dup2(fd_in, STDIN_FILENO);
-					dup2(fd_in, STDERR_FILENO);
-				}
-				else dup2(pipeSend[1], STDOUT_FILENO);
-				close(pipeSend[0]);
-		}
-		else if(currentCommand == numPipes) {
-				// printf("lastCommand\n");
-				if(outfile != NULL && canAppend == FALSE) {
-				out = fopen(outfile, "w+");
-				fd_out = fileno(out);
-				}
-				else if(outfile != NULL && canAppend == TRUE) {
-					out = fopen(outfile, "a+");
-					fd_out = fileno(out);
-				}
 
-				if(fd_out != STDOUT_FILENO) {
-					dup2(fd_out, STDOUT_FILENO);
-				}
-				else dup2(pipeReceive[0], STDIN_FILENO);
-				close(pipeReceive[1]);
-				
+		tempArgs[0] = commandTable[currentCommand].commandName;
+		
+		for(i=0; i <= commandTable[currentCommand].numArgs; ++i) {
+			if(i == commandTable[currentCommand].numArgs)
+			{
+				tempArgs[i+1] = NULL;
+			}
+			else 
+				tempArgs[i+1] = commandTable[currentCommand].args[i];
 		}
-		else {
-			// printf("middleCommand\n");
-			dup2(pipeReceive[0], STDIN_FILENO);
-			dup2(pipeSend[1], STDOUT_FILENO);
-			// CLOSING IN CHILD
-			close(pipeSend[0]);
+		/*i = 0;
+		while(tempArgs[i] != NULL) {
+			printf("TempArgs : %s ", tempArgs[i]);
+			++i;
+		}
+		 printf( "\n");*/
+
+		pid = fork();
+		if(pid > 0) {
+			close(pipeReceive[0]);
 			close(pipeReceive[1]);
 		}
-		if(strcmp(commandTable[currentCommand].commandName, "cat") == 0) {
-			if(commandTable[currentCommand].numArgs == 0) {
-				printf("Error executing command.\n");
-				isCatNull = TRUE;
+		else if(pid < 0) {
+			printf("Error pid is negative\n");
+		}
+		else if(pid == 0) {	// child
+			
+			//if first command,
+				//setup input redirection, if applicable
+
+			//...
+			// call open, returns file desciprtor
+			// dup2(fd_in, STDIN_FILENO);
+			// dup2(STDIN_FILENO, STDERR_FILENO)
+			if( numPipes == 0 ) {
+				//do nothing
 			}
+				
+			else if(currentCommand == 0) {
+				printf("firstCommand\n");
+				dup2(pipeSend[1], STDOUT_FILENO);
+				close(pipeSend[0]);
+			}
+			else if(currentCommand == numPipes) {
+				printf("lastCommand\n");
+				dup2(pipeReceive[0], STDIN_FILENO);
+				close(pipeReceive[1]);
+			}
+			else {
+				printf("middleCommand\n");
+				dup2(pipeReceive[0], STDIN_FILENO);
+				dup2(pipeSend[1], STDOUT_FILENO);
+				// CLOSING IN CHILD
+				close(pipeSend[0]);
+				close(pipeReceive[1]);
+			}
+			int errorCode = execvp(commandTable[currentCommand].commandName, tempArgs);
+			printf("%d", errorCode);
+			exit(0);
+			wait(pid, NULL, 0);
 		}
-		int status;
-
-		if(isCatNull == FALSE) {
-			status = execvp(commandTable[currentCommand].commandName, tempArgs);
-			printf("Error executing command: %d\n", status);	
-		}
+		// shoft pipes over for next iteration
+		// in parent
+		pipeReceive[0] = pipeSend[0];
+		pipeReceive[1] = pipeSend[1];
 		
-		_exit(EXIT_FAILURE);
-		if(status == -1) {
-			fflush(0);
-		}
 	}
-	}
-	// shift pipes over for next iteration in parent
-	pipeReceive[0] = pipeSend[0];
-	pipeReceive[1] = pipeSend[1];
+} 
 
-} // End of For Loop 
-
-	if(runInBackground == FALSE) {
-		waitpid(pid, NULL, 0);
-	}
-	else {
-		//fflush(0);
-		runInBackground = FALSE;
-	}
-}
-
-/***********************  PROCESS PIPES END ******************/
 void initializeTempArgs() {
 	int i = 0;
 	for(i; i < MAXARGS; ++i) {
-		tempArgs[i] = NULL;	
+		tempArgs[i] = NULL;
 	}	
 }
 
-void processTildeExpansion() {
-	int foundTilde = FALSE;
-	int slashFound = FALSE;
-	int i = 0, j = 0, k = 0;
-	int firstToken = 0;
-	int length = 0;
-	int slashIndex;
-	char* c;
-	char* c1;
-	char* c2;
+int hasAsterisk(char * arg) {
+	if((int)*arg == 42)
+		return TRUE;
 
-	char* temp[1];
-	while(entireLine[i+1] != NULL) {
-		/* check for individual "~" */
-		if(strcmp("~", entireLine[i]) == 0){
-			entireLine[i] = home;
-			entireLine[i+1] = NULL;
-			break;
-		}
-
-	 	else {
-		
-			/* check for ~word */
-			c = entireLine[i];
-			c1 = entireLine[i];
-
-			length = strlen(entireLine[i]);
-			
-			slashIndex = length;
-			/* Traverse each word in entireLine[i]
-			 * if first token is ~, foundTilde = TRUE
-			 * if / is found, slashIndex = i
-			 */
-
-			for(j=0; j < length; ++j) {
-		
-				// first Token
-				if(j == 0) {
-					
-					firstToken = (int)*c;
-					
-					// found tilde 
-					if(firstToken == 126){
-					
-						foundTilde = TRUE;
-					}
-				}
-				else {
-					// if you find a slash
-					if(*c == 47){
-						slashFound = TRUE;
-						slashIndex = j;
-						break;
-					}
-				}
-				++c;
-			}
-			
-			if(foundTilde == TRUE) {
-
-				/* ~hello/fewa -> ~hello
-				 * if there was a slash, copy new word without slash into tokenWithoutSlash
-				 * if there was no slash, entireLine[i] gets copied fully into variable */
-				strncpy(tokenWithoutSlash, entireLine[i], slashIndex);
-
-				// extract word from tilde ~hello -> hello
-				memmove(&tokenWithoutSlash[0], &tokenWithoutSlash[0 + 1], strlen(tokenWithoutSlash) - 0);
-
-				struct passwd* pw;
-				pw = getpwnam(tokenWithoutSlash);
-	            if((pw == NULL)) {
-	            	printf("Error - getpwnam unknown user\n");
-	            }
-	            else {
-	            	entireLine[i] = pw->pw_dir;
-	            	// printf("%s", entireLine[i]);
-	            }
-			}
-			
-	 }
-		++i;
-	} // end of while loop
-	
+	else return FALSE;
 }
 
-
-char * getInputFile() {
-	int i = 0;
-
-	char * infile = NULL;
-
-	for(i; i < entireLineLength(); i++)
-		if(strcmp(entireLine[i], "<") == 0)
-			infile = entireLine[i+1];
-
-	return infile;
-}
-
-char * getOutputFile() {
-	int i = 0;
-
-	char * outfile = NULL;
-
-	for(i; i < entireLineLength(); i++) {
-		if(strcmp(entireLine[i], ">") == 0) {
-			outfile = entireLine[i+1];
-			canAppend = FALSE;
+int hasQuestionMark(char * arg) {
+	printf("hasQuestionMark\n");
+	int i = 0, length = strlen(arg);
+	int firstToken = 0, flag = FALSE;
+	for(i; i < length; ++i) {
+		if(i == 0) {
+			firstToken = (int)*arg;
+			if(firstToken == 63){
+				return TRUE;
+			}
+		}	
+		else {
+			if(firstToken == 63){
+				return FALSE;
+			}
 		}
-		else if(strcmp(entireLine[i], ">>") == 0) {
-			outfile = entireLine[i+1];
-			canAppend = TRUE;
-		}
+		++arg;
 	}
 
-	return outfile;
+	return TRUE;
 }
 
-/* Has * or ? for glob */
 int hasPattern(char* arg, int length){
 	int i = 0;
 	for(i; i < length; ++i) {
@@ -1240,76 +1295,3 @@ int hasPattern(char* arg, int length){
 	}
 	return FALSE;
 }
-
-
-void processWildCards(int i) {
-//	int i = 0; 
-	int j = 0;
-	int finalIndex = 0;
-	int wordLength;
-	wordLength = strlen(entireLine[i]);
-
-	
-	if (hasPattern(entireLine[i], wordLength) == TRUE){
-		glob_t globbuf;
-
-		if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
-			 size_t j;
-			 int count = 0;
-			 for (j = 0; j < globbuf.gl_pathc; j++) {
-			 	wildCardResults[j] = strdup(globbuf.gl_pathv[j]);
-			 	count++;
-			 }
-			 int z;
-			 for(z = 0; z < count; z++) {
-			 	entireLine2[finalIndex] = wildCardResults[z];
-			 	//printf("arg %d: %s\n", finalIndex, entireLine2[finalIndex]);
-			 	finalIndex++;
-			 }
-		}
-		globfree(&globbuf);
-	}
-	else {
-		entireLine2[finalIndex] = entireLine[i];
-	}
-	for(i=0; i < entireLineLength(); ++i) {
-		entireLine[i] = entireLine2[i];
-	}
-}
-/*
-
-void processWildCards(int i) {
-//	int i = 0; 
-	int j = 0;
-	int finalIndex = 0;
-	int wordLength;
-	wordLength = strlen(entireLine[i]);
-
-	if (hasPattern(entireLine[i], wordLength) == TRUE){
-		glob_t globbuf;
-
-		if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
-			 size_t j;
-			 int count = 0;
-			 for (j = 0; j < globbuf.gl_pathc; j++) {
-			 	wildCardResults[j] = strdup(globbuf.gl_pathv[j]);
-			 	count++;
-			 }
-			 int z;
-			 for(z = 0; z < count; z++) {
-			 	entireLine[finalIndex] = wildCardResults[z];
-			 	//printf("arg %d: %s\n", finalIndex, entireLine[finalIndex]);
-			 	finalIndex++;
-			 }
-		}
-		globfree(&globbuf);
-	}
-	else {
-		entireLine[finalIndex] = entireLine[i];
-		//printf("arg %d: %s\n", finalIndex, entireLine[finalIndex]);
-		finalIndex++;
-	}
-}
-
-
-*/

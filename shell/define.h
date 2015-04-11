@@ -119,9 +119,14 @@ int builtInCommandArgsLength(int cmd);
 void understand_errors();
 void init_scanner_and_parse();
 
+/* execute_it() */
+void processWildCards();
+void processPipes();
+
+
 /* Pipelining */
 void buildTempArgs();
-void processPipes();
+
 void buildCommandTable();
 void printCommandTable();
 void in_redir();
