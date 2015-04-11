@@ -43,6 +43,7 @@ char* tempArgs[MAXARGS];
 char tokenWithoutSlash[MAXARGS];
 int isCatNull = FALSE;
 char * wildCardResults[MAX_WILDCARDS];
+int find2Error = FALSE;
 
 /********* Externs - End *********/
 
@@ -150,7 +151,10 @@ void processCommand() {
 		
 	}
 	else {
-		 execute_it();
+		if(checkForTrash() == TRUE) {
+                        printf("Error executing command.\n");
+        }
+		else execute_it();
 	}
 
 
@@ -410,9 +414,8 @@ void getCurrentDirectory(){
 
 /* Handles commands except built-in */
 void execute_it(){
-
+	processWildCards();
 	processPipes();
-	// pid_t pid[MAX_PIPES];
 
 
 		/* ONE COMMAND EXECVP WORKS *******************************
@@ -910,13 +913,19 @@ void processPipes() {
 	int pid = 0;
 	int runInBackground = FALSE;
 
+	/*int wowzers = 0;
+	for(wowzers; wowzers < MAX_COMMANDS; wowzers++) {
+		printf("entireLine[%d]: %s\n", wowzers, entireLine[wowzers]);
+	}
+*/
 	/* find numPipes */
+
 	for(i; i < entireLineLength(); ++i) {
+		//printf("entireLine[%d]: %s\n", i,entireLine[i]);
 		if(strcmp(entireLine[i], "|") == 0)
 			++numPipes;
 	}
 	if(numPipes == 0){
-
 		commandTable[0].commandName = entireLine[0];
 		commandTable[0].numArgs = entireLineLength() - 1;
 	}
@@ -940,12 +949,14 @@ void processPipes() {
 		}
 
 		else {
+			//>processErrorsToFile(); // CHANGE find2Error = TRUE if needed
 			/* Check for & in background */
 			if(i == entireLineLength()-1 && (strcmp(entireLine[i], "&") == 0)) {
 					// printf("Found run in background");
 					runInBackground = TRUE;
 			}
-			else if(strcmp(entireLine[i], ">") == 0 || strcmp(entireLine[i], ">>") == 0 || strcmp(entireLine[i], "<") == 0 || strcmp(entireLine[i], "2>&1") == 0) {
+			
+			else if(strcmp(entireLine[i], ">") == 0 || strcmp(entireLine[i], ">>") == 0 || strcmp(entireLine[i], "<") == 0 || strcmp(entireLine[i], "2>&1") == 0 || strcmp(entireLine[i], "2>") == 0) {
 				//Break
 				i = MAX_COMMANDS;
 			}
@@ -987,106 +998,122 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 			tempArgs[i+1] = commandTable[currentCommand].args[i];
 	}
 	if(wordCount > 1) {
-	pid = fork();
-	if(pid > 0) {
-		close(pipeReceive[0]);
-		close(pipeReceive[1]);
-	}
-	else if(pid < 0) {
-		printf("Error pid is negative\n");
-	}
-	else if(pid == 0) {
-
-		char * infile = getInputFile();
-		char * outfile = getOutputFile();
-
-		FILE *in = NULL;
-		int fd_in = STDIN_FILENO;
-		FILE *out = NULL;
-		int fd_out = STDOUT_FILENO;
-
-		if( numPipes == 0 ) {
-			/*Input redirection*/
-			if(infile != NULL) {
-				in = fopen(infile, "r");
-				fd_in = fileno(in);
-			}
-			if(fd_in != STDIN_FILENO) {
-				dup2(fd_in, STDIN_FILENO);
-				dup2(fd_in, STDERR_FILENO);
-			}
-
-			/*Output redirection*/
-			if(outfile != NULL && canAppend == FALSE) {
-				out = fopen(outfile, "w+");
-				fd_out = fileno(out);
-			}
-			else if(outfile != NULL && canAppend == TRUE) {
-				out = fopen(outfile, "a+");
-				fd_out = fileno(out);
-			}
-
-			if(fd_out != STDOUT_FILENO) {
-				dup2(fd_out, STDOUT_FILENO);
-			}
+		pid = fork();
+		/*if(pid > 0) {
+			printf("HELLO");
+			close(pipeReceive[0]);
+			close(pipeReceive[1]);
+		}*/
+		if(pid < 0) {
+			printf("Error pid is negative\n");
 		}
-		else if(currentCommand == 0) {
-				// printf("firstCommand\n");
+		else if(pid == 0) {
+			
+			char * infile = getInputFile();
+			char * outfile = getOutputFile();
+			char * errorfile = processErrorsToFile();
+
+			FILE *in = NULL;
+			int fd_in = STDIN_FILENO;
+			FILE *out = NULL;
+			int fd_out = STDOUT_FILENO;
+			FILE *error = NULL;
+			int fd_error = STDERR_FILENO;
+		
+
+			if( numPipes == 0 ) {
+				/*Input redirection*/
 				if(infile != NULL) {
 					in = fopen(infile, "r");
 					fd_in = fileno(in);
 				}
 				if(fd_in != STDIN_FILENO) {
 					dup2(fd_in, STDIN_FILENO);
-					dup2(fd_in, STDERR_FILENO);
 				}
-				else dup2(pipeSend[1], STDOUT_FILENO);
-				close(pipeSend[0]);
-		}
-		else if(currentCommand == numPipes) {
-				// printf("lastCommand\n");
+
+				/*Output redirection*/
 				if(outfile != NULL && canAppend == FALSE) {
-				out = fopen(outfile, "w+");
-				fd_out = fileno(out);
+					out = fopen(outfile, "w+");
+					fd_out = fileno(out);
 				}
 				else if(outfile != NULL && canAppend == TRUE) {
 					out = fopen(outfile, "a+");
 					fd_out = fileno(out);
 				}
-
 				if(fd_out != STDOUT_FILENO) {
 					dup2(fd_out, STDOUT_FILENO);
 				}
-				else dup2(pipeReceive[0], STDIN_FILENO);
+				/*Error redirection*/
+				if(errorfile != NULL) {
+					error = fopen(errorfile, "w+");
+					fd_error = fileno(error);
+				}
+				if(fd_error != STDERR_FILENO) {
+					dup2(fd_error, STDERR_FILENO);
+				}
+				else dup2(fd_in, STDERR_FILENO);
+			
+				/* End of Error redirection */
+			}
+			else if(currentCommand == 0) {
+					// printf("firstCommand\n");
+					if(infile != NULL) {
+						in = fopen(infile, "r");
+						fd_in = fileno(in);
+					}
+					if(fd_in != STDIN_FILENO) {
+						dup2(fd_in, STDIN_FILENO);
+					}
+					else dup2(pipeSend[1], STDOUT_FILENO);
+
+					close(pipeSend[0]);
+			}
+			else if(currentCommand == numPipes) {
+					// printf("lastCommand\n");
+					if(outfile != NULL && canAppend == FALSE) {
+					out = fopen(outfile, "w+");
+					fd_out = fileno(out);
+					}
+					else if(outfile != NULL && canAppend == TRUE) {
+						out = fopen(outfile, "a+");
+						fd_out = fileno(out);
+					}
+
+					if(fd_out != STDOUT_FILENO) {
+						dup2(fd_out, STDOUT_FILENO);
+					}
+					else dup2(pipeReceive[0], STDIN_FILENO);
+
+					close(pipeReceive[1]);
+					
+			}
+			else {
+				// printf("middleCommand\n");
+				dup2(pipeReceive[0], STDIN_FILENO);
+				dup2(pipeSend[1], STDOUT_FILENO);
+				// CLOSING IN CHILD
+				close(pipeSend[0]);
 				close(pipeReceive[1]);
-				
-		}
-		else {
-			// printf("middleCommand\n");
-			dup2(pipeReceive[0], STDIN_FILENO);
-			dup2(pipeSend[1], STDOUT_FILENO);
-			// CLOSING IN CHILD
-			close(pipeSend[0]);
-			close(pipeReceive[1]);
-		}
-		if(strcmp(commandTable[currentCommand].commandName, "cat") == 0) {
-			if(commandTable[currentCommand].numArgs == 0) {
-				printf("Error executing command.\n");
-				isCatNull = TRUE;
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "cat") == 0) {
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error executing command.\n");
+					isCatNull = TRUE;
+				}
+			}
+			int status;
+
+			if(isCatNull == FALSE) {
+				status = execvp(commandTable[currentCommand].commandName, tempArgs);
+				wait();
+				printf("Error executing command: %d\n", status);	
+			}
+			
+			_exit(EXIT_FAILURE);
+			if(status == -1) {
+				fflush(0);
 			}
 		}
-		int status;
-
-		if(isCatNull == FALSE) {
-			status = execvp(commandTable[currentCommand].commandName, tempArgs);
-			printf("Error executing command: %d\n", status);	
-		}
-		
-		_exit(EXIT_FAILURE);
-		if(status == -1) {
-			fflush(0);
-		}
-	}
 	}
 	// shift pipes over for next iteration in parent
 	pipeReceive[0] = pipeSend[0];
@@ -1114,7 +1141,7 @@ void initializeTempArgs() {
 void processTildeExpansion() {
 	int foundTilde = FALSE;
 	int slashFound = FALSE;
-	int i = 0, j = 0, k = 0;
+	int i = 1, j = 0, k = 0;
 	int firstToken = 0;
 	int length = 0;
 	int slashIndex;
@@ -1242,74 +1269,164 @@ int hasPattern(char* arg, int length){
 }
 
 
-void processWildCards(int i) {
-//	int i = 0; 
-	int j = 0;
+void processWildCards() {
+	int i; 
 	int finalIndex = 0;
-	int wordLength;
-	wordLength = strlen(entireLine[i]);
 
-	
-	if (hasPattern(entireLine[i], wordLength) == TRUE){
-		glob_t globbuf;
 
-		if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
-			 size_t j;
-			 int count = 0;
-			 for (j = 0; j < globbuf.gl_pathc; j++) {
-			 	wildCardResults[j] = strdup(globbuf.gl_pathv[j]);
-			 	count++;
-			 }
-			 int z;
-			 for(z = 0; z < count; z++) {
-			 	entireLine2[finalIndex] = wildCardResults[z];
-			 	//printf("arg %d: %s\n", finalIndex, entireLine2[finalIndex]);
-			 	finalIndex++;
-			 }
+	/*Get the length of the command*/
+	int length = entireLineLength();
+
+	/*Process wild cards*/
+	for(i = 0; i < length; i++) {
+		int wordLength = strlen(entireLine[i]);
+
+		/*Check to see if the current arg contains a wildcard*/
+		if (hasPattern(entireLine[i], wordLength) == TRUE){
+			glob_t globbuf;
+
+			// If the arg has a wildcard, check for matches
+			if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
+				 size_t j;
+				 int count = 0;
+
+				 //Store matches in a temp array
+				 for (j = 0; j < globbuf.gl_pathc; j++) {
+				 	wildCardResults[j] = strdup(globbuf.gl_pathv[j]);
+				 	count++;
+				 }
+
+				 //Copy the matches back into the original command
+				 int z;
+				 for(z = 0; z < count; z++) {
+				 	entireLine2[finalIndex] = wildCardResults[z];
+				 	finalIndex++;
+				 }
+			}
+			//Couldn't find a match, just stick it back into the args
+			else {
+				entireLine2[finalIndex] = entireLine[i];
+				finalIndex++;
+			}
+			//globfree(&globbuf);*/
 		}
-		globfree(&globbuf);
-	}
-	else {
-		entireLine2[finalIndex] = entireLine[i];
-	}
-	for(i=0; i < entireLineLength(); ++i) {
-		entireLine[i] = entireLine2[i];
-	}
-}
-/*
 
-void processWildCards(int i) {
-//	int i = 0; 
-	int j = 0;
-	int finalIndex = 0;
-	int wordLength;
-	wordLength = strlen(entireLine[i]);
-
-	if (hasPattern(entireLine[i], wordLength) == TRUE){
-		glob_t globbuf;
-
-		if (glob(entireLine[i], 0, NULL, &globbuf) == 0) {
-			 size_t j;
-			 int count = 0;
-			 for (j = 0; j < globbuf.gl_pathc; j++) {
-			 	wildCardResults[j] = strdup(globbuf.gl_pathv[j]);
-			 	count++;
-			 }
-			 int z;
-			 for(z = 0; z < count; z++) {
-			 	entireLine[finalIndex] = wildCardResults[z];
-			 	//printf("arg %d: %s\n", finalIndex, entireLine[finalIndex]);
-			 	finalIndex++;
-			 }
+		/*If there wasn't a wildcard, copy the arg from the temp array back into the original*/
+		else {
+			entireLine2[finalIndex] = entireLine[i];
+			finalIndex++;
 		}
-		globfree(&globbuf);
 	}
-	else {
-		entireLine[finalIndex] = entireLine[i];
-		//printf("arg %d: %s\n", finalIndex, entireLine[finalIndex]);
-		finalIndex++;
-	}
+
+	/*Terminate the command will a null arg*/
+	//entireLine[finalIndex] = "";
 }
 
+/* Finds 2>file
+ * extracts file */
+char * processErrorsToFile() {
+	find2Error = FALSE;
+	int i = 0, j = 0, k = 0;
+	int firstToken = 0;
+	int secondToken = 0;
+	int thirdToken = 0;
+	int length = 0;
+	int match1 = FALSE;
+	int match2 = FALSE;
+	int match3 = FALSE;
+	char* c;
+	char* c1 = NULL;
 
-*/
+
+	while(entireLine[i+1] != NULL) {
+		/* check for 2>file */
+		c = entireLine[i];
+		c1 = entireLine[i];
+		length = strlen(entireLine[i]);
+
+		/* Traverse each word in entireLine[i]
+		 * if 1st token is 2, match1 = TRUE
+		 * if 2nd token is >, match2 = TRUE
+		 */
+		for(j=0; j < length; ++j) {
+			if(j == 0) {
+				firstToken = (int)*c;
+				// found '2' 
+				if(firstToken == 50)
+					match1 = TRUE;
+			}
+			else if(j == 1) {
+				secondToken = (int)*c;
+				// found '>'
+				if(secondToken == 62)
+					match2 = TRUE;
+			}
+			else if(j == 2) {
+				thirdToken = (int)*c;
+				// found '>'
+				if(thirdToken != 38)
+					match3 = TRUE;
+
+				else match3 = FALSE;
+			}
+			else if(match1 == TRUE && match2 == TRUE && match3 == TRUE){
+				break;
+			} 
+				
+			++c;
+		}
+		
+		if(match1 == TRUE && match2 == TRUE && match3 == TRUE) {
+			find2Error = TRUE;
+
+			/* 2>file goes to 'file' */
+			memmove(&c1[0], &c1[0 + 2], strlen(entireLine[i]) - 1);
+			//printf("%s", c1);
+        	//entireLine[i] = c1;
+        	//printf("%s\n", entireLine[i]);
+        	return c1;
+		}
+		++i;
+	} // end of while loop*/
+	return NULL;
+}
+
+/* Check for trash */
+int checkForTrash() {
+	int i = 33;
+	int end = 48;
+	char* c;
+	for(i; i < end; ++i) {
+		c = (char*)&i;
+		if(strcmp(entireLine[0], c)==0){
+			return TRUE;
+		}
+	}
+	i = 58;
+	end = 65;
+	for(i; i < end; ++i) {
+		 c = (char*)&i;
+		if(strcmp(entireLine[0], c)==0){
+			return TRUE;
+		}
+	}
+
+	i = 91;
+	end = 97;
+	for(i; i < end; ++i) {
+		c = (char*)&i;
+		if(strcmp(entireLine[0], c)==0){
+			return TRUE;
+		}
+	}
+
+	i = 123;
+	end = 127;
+	for(i; i < end; ++i) {
+		c = (char*)&i;
+		if(strcmp(entireLine[0], c)==0){
+			return TRUE;
+		}
+	}
+	return FALSE;
+}

@@ -90,6 +90,7 @@ int isBuiltInCommand();
 void do_it(int builtin);
 
 int executable(char *);
+int checkForTrash();
 void execute_it();
 
 /* processAlias() */
@@ -134,6 +135,7 @@ void out_redir();
 char * getInputFile();
 char * getOutputFile();
 int hasPattern(char* arg, int length);
+char * processErrorsToFile();
 /* Debugging */
 int entireLineLength();
 int printEntireLine();
