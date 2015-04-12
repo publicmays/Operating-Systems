@@ -58,13 +58,13 @@ Other Commands
 echo : ls : wc
 ```
  * The following commands are handled appropriately if the user inputs no args:
- ```
- cat : sort : cksum : fold : head : nl : od : tail : tee : wc
- ```
+```
+cat : sort : cksum : fold : head : nl : od : tail : tee : wc
+```
 * I/O and error redirection, as well as background processing through:
-	```
-	> >> < 2> 2>&1 &
-	```
+```
+> >> < 2> 2>&1 &
+```
 * Pipelining, for example:
 ```
 echo hello world | ls
