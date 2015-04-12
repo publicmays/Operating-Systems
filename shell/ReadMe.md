@@ -60,6 +60,8 @@ Other Commands
 ```
 echo hello world | ls
 ```
+Environment Variable Expansion
+* Expands ${variable}
 
 Wildcard Matching
 * Expands both * and ?
