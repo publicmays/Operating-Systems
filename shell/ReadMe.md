@@ -53,7 +53,14 @@ Built-in Commands
 
 
 Other Commands
-* All other commands allowed 
+* Standard shell commands such as:
+```
+echo : ls : wc
+```
+ * The following commands are handled appropriately if the user inputs no args:
+ ```
+ cat : sort : cksum : fold : head : nl : od : tail : tee : wc
+ ```
 * I/O and error redirection, as well as background processing through:
 	```
 	> >> < 2> 2>&1 &
@@ -85,40 +92,11 @@ Colon-seperated words
 Input file parsing
 * The shell does not parse input from files on its own (but does allow for input redirection as per the "Features Implemented" section)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Don't allow
-bc 
-yes
-
-User should never input nulls for
-
-need argument
-cat
-sort
-cksum
-fold
-head
-nl
-od
-tail
-tee
-wc
-
+Commands
+* We dont allow the user to run the following commands:
+```
+bc : yes
+```
 
 
 
