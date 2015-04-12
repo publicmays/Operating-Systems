@@ -119,7 +119,7 @@ int getCommand() {
 	else {
 
 		/* This is only called to handle an alias for bye */
-		processAlias();
+		  processAlias();
 
 		
 		if(strcmp(entireLine[0], builtInTable[6].commandName) == 0){
@@ -134,7 +134,7 @@ int getCommand() {
 }
 
 void processCommand() {
-	processAlias();
+	 processAlias();
 	
 	processTildeExpansion();
 
@@ -169,7 +169,7 @@ int checkForMoreAliases() {
 		// if index is not -1, replace entireLine[i] with aliasContent
 		if(aliasIndexFound >= 0){
 			//entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
-			processAlias();
+			// processAlias();
 			return TRUE;
 		}
 	}
@@ -177,22 +177,25 @@ int checkForMoreAliases() {
 }
 void processAlias() {
 	int aliasIndexFound = -1, i;
-	do{
+	int counter = 0;
 		/* If user doesn't input alias as the first command */
-		if(strcmp(entireLine[0],my_alias.commandName) != 0) {
-			// printf("%s != ", entireLine[0])
-			for(i = 0; i < entireLineLength(); ++i) {
-				// find index where alias is found
-				aliasIndexFound = isAlias(entireLine[i]);
-				// if index is not -1, replace entireLine[i] with aliasContent
-				if(aliasIndexFound >= 0){
-					entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+		if(strcmp(entireLine[0],my_alias.commandName) != 0 && strcmp(entireLine[0],my_unalias.commandName) != 0) {
+			do{
+				// printf("%s != ", entireLine[0])
+				for(i = 0; i < entireLineLength(); ++i) {
+					// find index where alias is found
+					aliasIndexFound = isAlias(entireLine[i]);
+					// if index is not -1, replace entireLine[i] with aliasContent
+					if(aliasIndexFound >= 0){
+						entireLine[i] = aliasTable[aliasIndexFound].aliasContent;
+					}
 				}
-			}
-			//printLineLength();	
+				++counter;
+			 }while(checkForMoreAliases() == TRUE && counter < MAX_ALIAS);
+			if(counter >= MAX_ALIAS) {
+				printf("Error - infinite loop of aliases \n");
+			}	
 		}
-	}while(checkForMoreAliases() == TRUE);
-	
 }
 
 int isAlias(char* c) {
@@ -569,14 +572,18 @@ void cdFunction() {
 int setenvFunction() {
 	char * variable = builtInTable[0].args[0];
 	char * word = builtInTable[0].args[1];
+
 	cmd = 0;
 	int setenv_argLength = builtInCommandArgsLength(cmd);
 	// printf("variable:%d\n", setenv_argLength);
 	//printf("word:%s\n", word);
 
 	if(variable != NULL && word != NULL) {
-		int i;
-
+		int i = 0;
+		int j = 0;
+		char colon = (char)58;			
+		char tilde = (char)126;
+		char* homeCopy = home;
 		/*Checks to see if the variable name already exists*/
 		for(i = 0; i < MAX_VARIABLES; i++) {
 			if(variableTable[i].used == 1) {
@@ -586,8 +593,36 @@ int setenvFunction() {
 				}
 			}
 		}
+		/*Attempts to put the variable into the table*/
 		if(setenv_argLength == 2){
-			/*Attempts to put the variable into the table*/
+			/*int length = strlen(word);
+			int totalLength = strlen(word);
+			char wordCopy[length];
+			strcpy(wordCopy, word);
+			int tildeCount = 0;
+			// if :~
+			for(i = 0; i < length-1; ++i) {
+				if(wordCopy[i] == colon) {
+					if(wordCopy[i+1] == tilde) {
+						++tildeCount;
+					}
+				}
+			}
+			totalLength = strlen(word) + tildeCount*strlen(home);
+			for(i = 0; i < totalLength; ++i) {
+				if(wordCopy[i] == colon) {
+					if(wordCopy[i+1] != NULL) {
+						if(wordCopy[i+1] == tilde) {
+							for(j=0; j < strlen(home); ++j) {
+								wordCopy[i+1] = *homeCopy;
+								++homeCopy;
+							}
+						}
+					}
+					
+				}
+			}
+			printf("Word : %s\n", wordCopy);*/
 			for(i = 0; i < MAX_VARIABLES; i++) {
 				if(variableTable[i].used == 0) {
 					variableTable[i].variable = variable;
@@ -1511,4 +1546,23 @@ int isBuiltInCommandPipeline(int currentCommand) {
 		}
 	}
 	return index;
+}
+
+char *replace_char (char *str, char find, char *replace) {
+    char *ret=str;
+    char *wk, *s;
+
+    wk = s = strdup(str);
+
+    while (*s != 0) {
+        if (*s == find){
+            while(*replace)
+                *str++ = *replace++;
+            ++s;
+        } else
+            *str++ = *s++;
+    }
+    *str = '\0';
+    free(wk);
+    return ret;
 }

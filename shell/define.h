@@ -109,6 +109,8 @@ int checkForMoreEnvironmentExpansions();
 void cdFunction();
 void getCurrentDirectory();
 int setenvFunction();
+ // subset of setenv
+char *replace_char(char *str, char find, char *replace);
 int unsetenvFunction();
 void printenvFunction();
 void printaliasFunction();
