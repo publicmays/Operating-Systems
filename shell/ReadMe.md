@@ -32,7 +32,7 @@ sudo apt-get install bison
 
 * Tested on Ubuntu 14.04.2 64-bit and the CISE lab machines. Lex and Yacc must be installed.
 
-#### What works
+#### Implemented
 
 Built-in Commands
 
@@ -45,6 +45,7 @@ Built-in Commands
  * alias (with args)
  * alias (without args)
  * unalias
+ * Nested aliases allowed, infinite alias expansion is handled
 
 * Others
  * cd (with no args, with cd ~, with directory name)
@@ -73,7 +74,9 @@ wc *.c > out.txt
 Tilde Expansion
 * Tidle expansion is working.
 
-
+#### Not Implemented
+* File name completion has not been implemented in our shell.
+* Colon-seperated words for setenv
 
 
 
