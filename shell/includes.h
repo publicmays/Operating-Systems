@@ -61,10 +61,72 @@ int canAppend = -1;
 
 // TO DO
 void shell_init() {
+	/* START OF SIGNALS */
 	// prevent Ctrl + Z, Ctrl + C
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
+	signal(SIGHUP, SIG_IGN);          
+	signal(SIGILL, SIG_IGN);
+	signal(SIGTRAP, SIG_IGN);    
+	signal(SIGABRT, SIG_IGN);    
+	signal(SIGBUS, SIG_IGN);     
+	signal(SIGFPE, SIG_IGN);
+	signal(SIGKILL, SIG_IGN);    
+	signal(SIGUSR1, SIG_IGN);    
+	signal(SIGSEGV, SIG_IGN);    
+	signal(SIGUSR2, SIG_IGN);
+	// signal(SIGPIPE, SIG_IGN);   blocks pipes 
+	signal(SIGALRM, SIG_IGN);    
+	signal(SIGTERM, SIG_IGN);    
+	signal(SIGCHLD, SIG_IGN);
+	signal(SIGCONT, SIG_IGN);    
+	signal(SIGSTOP, SIG_IGN);       
+	signal(SIGTTIN, SIG_IGN);
+	signal(SIGTTOU, SIG_IGN);    
+	signal(SIGURG, SIG_IGN);     
+	signal(SIGXCPU, SIG_IGN);    
+	signal(SIGXFSZ, SIG_IGN);
+	signal(SIGVTALRM, SIG_IGN);  
+	signal(SIGPROF, SIG_IGN);    
+	signal(SIGWINCH, SIG_IGN);   
+	signal(SIGIO, SIG_IGN);
+	signal(SIGPWR, SIG_IGN);     
+	signal(SIGSYS, SIG_IGN);     
+	signal(SIGRTMIN, SIG_IGN);   
+	signal(SIGRTMIN+1, SIG_IGN); 
+	signal(SIGRTMIN+2,SIG_IGN);  
+	signal(SIGRTMIN+3,SIG_IGN);
+  	signal(SIGRTMIN+4,SIG_IGN);
+  	signal(SIGRTMIN+5,SIG_IGN);
+	signal(SIGRTMIN+6,SIG_IGN);
+	signal(SIGRTMIN+7,SIG_IGN);
+	signal(SIGRTMIN+8,SIG_IGN);
+	signal(SIGRTMIN+9,SIG_IGN);
+	signal(SIGRTMIN+10,SIG_IGN); 
+	signal(SIGRTMIN+11,SIG_IGN); 
+	signal(SIGRTMIN+12,SIG_IGN); 
+	signal(SIGRTMIN+13,SIG_IGN);
+	signal(SIGRTMIN+14,SIG_IGN); 
+	signal(SIGRTMIN+15,SIG_IGN); 
+	signal(SIGRTMAX-14,SIG_IGN); 
+	signal(SIGRTMAX-13,SIG_IGN);
+	signal(SIGRTMAX-12,SIG_IGN); 
+	signal(SIGRTMAX-11,SIG_IGN); 
+	signal(SIGRTMAX-10,SIG_IGN); 
+	signal(SIGRTMAX-9,SIG_IGN);
+	signal(SIGRTMAX-8,SIG_IGN);  
+	signal(SIGRTMAX-7,SIG_IGN);  
+	signal(SIGRTMAX-6,SIG_IGN);  
+	signal(SIGRTMAX-5,SIG_IGN);
+	signal(SIGRTMAX-4,SIG_IGN);  
+	signal(SIGRTMAX-3,SIG_IGN);  
+	signal(SIGRTMAX-2,SIG_IGN);  
+	signal(SIGRTMAX-1,SIG_IGN);
+	signal(SIGRTMAX,SIG_IGN);
+
+	/* END OF CAN'T KILL US NOW */
+
 	initializeEntireLine();
 	initializeEntireLine2();
 	
@@ -309,7 +371,8 @@ int checkForMoreEnvironmentExpansions() {
  					environIndexFound = checkVariableTable(possibleEnvironmentVariable, wordLength-3);
  					// printf("%d", environIndexFound);
  					if(environIndexFound >= 0){
-						processEnvironmentVariablesExpansion();
+						return TRUE;
+						//processEnvironmentVariablesExpansion();
 						//entireLine[i] = variableTable[environIndexFound].word;
 					}
  				}
@@ -321,6 +384,7 @@ int checkForMoreEnvironmentExpansions() {
  		
 		++i;
 	}
+	return FALSE;
 }
 int checkVariableTable(char c[], int length) {
 	//printf("%s - %zu", c, strlen(c));
@@ -1179,9 +1243,18 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 				close(pipeSend[0]);
 				close(pipeReceive[1]);
 			}
+
+			/* Makes sure that cat and sort cannot have null arguments */
 			if(strcmp(commandTable[currentCommand].commandName, "cat") == 0) {
 				if(commandTable[currentCommand].numArgs == 0) {
-					printf("Error executing command.\n");
+					printf("Error executing command cat.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "sort") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command sort even if you have a command before, because sort has null arguments it should not be executed.\n");
 					isCatNull = TRUE;
 				}
 			}
