@@ -127,7 +127,6 @@ void processPipes();
 
 /* Pipelining */
 void buildTempArgs();
-
 void buildCommandTable();
 void printCommandTable();
 void in_redir();
@@ -136,6 +135,8 @@ char * getInputFile();
 char * getOutputFile();
 int hasPattern(char* arg, int length);
 char * processErrorsToFile();
+int isBuiltInCommandPipeline(int currentCommand);
+
 /* Debugging */
 int entireLineLength();
 int printEntireLine();

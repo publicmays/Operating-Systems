@@ -33,7 +33,6 @@ int main() {
 				printf("Error - You got us. There was an error.\n");
 				break;
 			case OK:
-
 				processCommand();
 				break;
 		}

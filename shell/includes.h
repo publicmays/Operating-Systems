@@ -401,6 +401,7 @@ int isBuiltInCommand() {
 	return index;
 }
 
+/* Prints Current Directory */
 void getCurrentDirectory(){
 	char *cwd;
           if ((cwd = getcwd(NULL, 64)) == NULL) {
@@ -495,7 +496,7 @@ int entireLineLength() {
 	return i;
 }
 
-
+/* Prints entire Line */
 int printEntireLine() {
 	printf("printEntireLine\n");
 	int i = 0;
@@ -509,6 +510,7 @@ int printEntireLine() {
 	return i;
 }
 
+/* Prints Entire Line 2 */
 int printEntireLine2() {
 	printf("printEntireLine2\n");
 	int i = 0;
@@ -521,7 +523,6 @@ int printEntireLine2() {
 	printf("\n");
 	return i;
 }
-
 
 
 void cdFunction() {
@@ -1014,7 +1015,6 @@ void processPipes() {
 				/* Should process wild cards here */
 				// processWildCards(i);
 
-
 				commandTable[pipeCounter].args[numArgs] = entireLine[i];
 				//printf("Args for pipe %d: %s\n", pipeCounter, commandTable[pipeCounter].args[numArgs]);	
 				++numArgs;
@@ -1151,8 +1151,11 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 				}
 			}
 			int status;
-
-			if(isCatNull == FALSE) {
+			int builtin = isBuiltInCommandPipeline(currentCommand);
+			if(builtin != -1) {
+				do_it(builtin);
+			}
+			else if(isCatNull == FALSE) {
 				status = execvp(commandTable[currentCommand].commandName, tempArgs);
 				wait();
 				printf("Error executing command: %d\n", status);	
@@ -1482,4 +1485,30 @@ int checkForTrash() {
 		}
 	}
 	return FALSE;
+}
+
+/* Returns index of built in command in builtInTable, 
+ * Returns -1 if it's not a built-in command */
+int isBuiltInCommandPipeline(int currentCommand) {
+
+	int index = -1, j, i;
+	int lineArgLength = entireLineLength()-1;
+	if(commandTable[currentCommand].commandName != NULL) {
+		//printf("el[0] - %s", entireLine[0]);
+		for(j = 0; j < MAX_BUILT_IN_COMMANDS; ++j){
+			// if first word is built in command, 0 = successful
+			if(strcmp(commandTable[currentCommand].commandName, builtInTable[j].commandName) == 0) {
+	
+				/* if there's arguments after entireLine[0] 
+				 * Don't forget to initializeEntireLine() in getCommand 
+				 * Set command arguments 
+				 * Note - Extra blank argument produced with -1, */
+			
+					index = j;
+					break;
+				
+			}
+		}
+	}
+	return index;
 }
