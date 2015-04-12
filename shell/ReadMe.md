@@ -101,8 +101,23 @@ Input file parsing
 
 
 
+Don't allow
+bc 
+yes
 
+User should never input nulls for
 
+need argument
+cat
+sort
+cksum
+fold
+head
+nl
+od
+tail
+tee
+wc
 
 
 
