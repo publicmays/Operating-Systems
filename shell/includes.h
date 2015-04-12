@@ -48,7 +48,6 @@ int find2Error = FALSE;
 /********* Externs - End *********/
 
 
-
 /* Pipelining */
 pid_t pid[3];
 
@@ -1244,7 +1243,7 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 				close(pipeReceive[1]);
 			}
 
-			/* Makes sure that cat and sort cannot have null arguments */
+			/* Makes sure that all of these commands cannot have null arguments */
 			if(strcmp(commandTable[currentCommand].commandName, "cat") == 0) {
 				if(commandTable[currentCommand].numArgs == 0) {
 					printf("Error executing command cat.\n");
@@ -1258,6 +1257,79 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 					isCatNull = TRUE;
 				}
 			}
+			if(strcmp(commandTable[currentCommand].commandName, "cksum") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "fold") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "head") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "nl") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "od") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "tail") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "tee") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "wc") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+
+			/* Separate section of arguments shell does not allow */
+			if(strcmp(commandTable[currentCommand].commandName, "yes") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			if(strcmp(commandTable[currentCommand].commandName, "bc") == 0) {
+				/* wc -l main.c | sort should only be executing wc -l main.c */
+				if(commandTable[currentCommand].numArgs == 0) {
+					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
+					isCatNull = TRUE;
+				}
+			}
+			/* End of null argument commands */
 			int status;
 			int builtin = isBuiltInCommandPipeline(currentCommand);
 			if(builtin != -1) {
