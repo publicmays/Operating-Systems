@@ -36,40 +36,40 @@ sudo apt-get install bison
 
 Built-in Commands
 
-*Environment Variables
- *setenv
- *printenv
- *unsetenv
+* Environment Variables
+ * setenv
+ * printenv
+ * unsetenv
 
-*Alias
- *alias (with args)
- *alias (without args)
- *unalias
+* Alias
+ * alias (with args)
+ * alias (without args)
+ * unalias
 
-*Others
- *cd (with no args, with cd ~, with directory name)
- *bye
+* Others
+ * cd (with no args, with cd ~, with directory name)
+ * bye
 
 
 Other Commands
-*I/O and error redirection, as well as background processing through:
+* I/O and error redirection, as well as background processing through:
 	```
 	> >> < 2> 2>&1 &
 	```
-*Pipelining, for example:
+* Pipelining, for example:
 ```
 echo hello world | ls
 ```
 
 Wildcard Matching
-*Expands both * and ?
+* Expands both * and ?
 ```
 wc *.c > out.txt
 ```
-*Execvp handles '.' and '/'
+* Execvp handles '.' and '/'
 
 Tilde Expansion
-*Tidle expansion is working.
+* Tidle expansion is working.
 
 
 
