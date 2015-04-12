@@ -87,7 +87,10 @@ Name completion
 * File name completion has not been implemented in our shell.
 
 Input file parsing
-* The shell does not parse input from files on its own (but does allow for input redirection as per the "Features Implemented" section)
+* The shell does not parse input from files on its own (but does allow for input redirection as per the "Features Implemented" section).
+
+Quotations
+* Spaces in quotations are not permitted when setting an environment variable or alias.
 
 Commands
 * We dont allow the user to run the following commands:
