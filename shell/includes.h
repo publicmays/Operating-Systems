@@ -1317,17 +1317,17 @@ for(currentCommand; currentCommand <= numPipes; currentCommand++) {
 			/* Separate section of arguments shell does not allow */
 			if(strcmp(commandTable[currentCommand].commandName, "yes") == 0) {
 				/* wc -l main.c | sort should only be executing wc -l main.c */
-				if(commandTable[currentCommand].numArgs == 0) {
+				
 					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
 					isCatNull = TRUE;
-				}
+				
 			}
 			if(strcmp(commandTable[currentCommand].commandName, "bc") == 0) {
 				/* wc -l main.c | sort should only be executing wc -l main.c */
-				if(commandTable[currentCommand].numArgs == 0) {
+			
 					printf("Error - executing command, cannot have null arguments. User should not be typing this.\n");
 					isCatNull = TRUE;
-				}
+				
 			}
 			/* End of null argument commands */
 			int status;
