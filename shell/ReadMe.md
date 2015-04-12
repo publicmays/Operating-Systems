@@ -53,6 +53,7 @@ Built-in Commands
 
 
 Other Commands
+* All other commands allowed 
 * I/O and error redirection, as well as background processing through:
 	```
 	> >> < 2> 2>&1 &
@@ -83,6 +84,7 @@ Colon-seperated words
 
 Input file parsing
 * The shell does not parse input from files on its own (but does allow for input redirection as per the "Features Implemented" section)
+
 
 
 
