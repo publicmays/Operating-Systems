@@ -63,7 +63,7 @@ cat : sort : cksum : fold : head : nl : od : tail : tee : wc
 ```
 * I/O and error redirection, as well as background processing through:
 ```
-> >> < 2> 2>&1 &
+> : >> : < : 2> : 2>&1 : &
 ```
 * Pipelining, for example:
 ```
@@ -85,9 +85,6 @@ Tilde Expansion
 #### Not Implemented
 Name completion
 * File name completion has not been implemented in our shell.
-
-Colon-seperated words
-* Colon-seperated words are not implemented when setting aliases or environment variables
 
 Input file parsing
 * The shell does not parse input from files on its own (but does allow for input redirection as per the "Features Implemented" section)
