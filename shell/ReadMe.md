@@ -15,24 +15,28 @@ sudo apt-get install bison
 > flex installs lex
 > bison installs yacc
 
-#### Special Commands
-```
-2>&1
-```
-* outputs any errors to the shell
-
-```
-2>file
-```
-* outputs any errors to the file within the shell folder
- * if there are no errors from the command there will be no output in the file
-
-
-* A Makefile is included with our shell project submission. Simply run 'make' and then './shell' to run our shell.
-
-* Tested on Ubuntu 14.04.2 64-bit and the CISE lab machines. Lex and Yacc must be installed.
-
 #### Implemented
+
+* To run the commands from an input file in our shell
+* Inside our shell run the command
+```
+./shell < file.txt
+```
+
+do not do this
+```
+./shell<file.txt
+```
+* all of the output will be in STDOUT which is the shell
+
+WE DO NOT RECOMMEND THIS
+
+```
+./shell < file.txt > output.txt
+```
+* If you redirect to an output file only the non-built in commands will display
+* Results in output.txt will be limited, and we only suggest comparing the results to STDOUT not the output.txt
+
 
 Built-in Commands
 
@@ -82,6 +86,25 @@ wc *.c > out.txt
 Tilde Expansion
 * Tidle expansion is working.
 
+
+#### Special Commands
+```
+2>&1
+```
+* outputs any errors to the shell
+
+```
+2>file
+```
+* outputs any errors to the file within the shell folder
+ * if there are no errors from the command there will be no output in the file
+
+
+* A Makefile is included with our shell project submission. Simply run 'make' and then './shell' to run our shell.
+
+* Tested on Ubuntu 14.04.2 64-bit and the CISE lab machines. Lex and Yacc must be installed.
+
+
 #### Not Implemented
 Name completion
 * File name completion has not been implemented in our shell.
@@ -97,9 +120,5 @@ Commands
 ```
 bc : yes
 ```
-
-
-
-
 
 
