@@ -75,8 +75,17 @@ Tilde Expansion
 * Tidle expansion is working.
 
 #### Not Implemented
+Name completion
 * File name completion has not been implemented in our shell.
-* Colon-seperated words for setenv
+
+Colon-seperated words
+* Colon-seperated words are not implemented when setting aliases or environment variables
+
+Input file parsing
+* The shell does not parse input from files on its own (but does allow for input redirection as per the "Features Implemented" section)
+
+
+
 
 
 
